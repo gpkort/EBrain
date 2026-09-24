@@ -111,27 +111,57 @@ namespace MP3Control
     
 
     //File Operations
-    void MP3Player::readAllPlaylists()
-    {
-      //
-    }
+    // void MP3Player::readAllPlaylists()
+    // {
+    //   //
+    // }
 
-    void MP3Player::readPlaylist()
-    {
-      //
-    }
+    // void MP3Player::readPlaylist()
+    // {
+    //   //
+    // }
 
     //Display Operations
-    std::vector<String> MP3Player::getPlaylists()
+    std::vector<String> MP3Player::getPlaylist()
     {
-      std::vector<String> playlist;
-      return playlist;
+      String pl = "";
+      std::vector<String> songs;
+      sendBT201Command("AT+AR/00_*.???\r\n"); 
+      while(true)
+      {   
+        if (BT201Serial.available() > 0)
+        {
+          char c = BT201Serial.read();
+          Serial.println(c);
+          pl += String(c);
+
+          if(c == "#")
+          {
+            Serial.println("Finished - " + pl);
+            break;
+          }
+
+          if(pl.length() == 6 && pl.startsWith("ER+"))
+          {
+            Serial.println(pl);
+            break;
+          }
+        }
+      }
+      return songs;      
     }
 
     std::vector<String> MP3Player::getSongList()
     {
-      std::vector<String> songs;
-      return songs;
+      std::vector<String> playlist;
+      sendBT201Command(comm.c_str());
+      if (BT201Serial.available() > 0)
+      {
+        auto message = BT201Serial.readString();
+        Serial.println(message);  
+        return(message);     
+      }
+      return playlist;
     }
 
 } //MP3Control

@@ -68,7 +68,7 @@ void loop() {
       {
         ptrPlayer->initBT201();
       }
-      else if(command == "S1")
+      else if(command == "R")
       {
         ptrPlayer->sendBT201Command("AT+CP02");
         //AT+CP02
