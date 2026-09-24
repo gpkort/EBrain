@@ -9,6 +9,16 @@ namespace MP3Control
 
     MP3Player::~MP3Player(){}
 
+    /*
+    M1+0000000E    The file playing by the current device is 0x0E
+    M2+0000000F   The total number of files on the current device is 0x0F. Note that it is a legitimate audio file.
+    MT+0000001E   The total time of the current file is 0x1E seconds
+    MK+00000004    The current file has been played to 0x04 seconds
+    MF+XXXXXXX    The name of the file currently playing is xxxxx.Here the file name is complete
+
+    3.2.5 Music-related query instructions
+    */
+
     void MP3Player::responseHandler()
     {
       if (BT201Serial.available() > 0)
@@ -76,6 +86,29 @@ namespace MP3Control
     {
       //
     }
+
+    void MP3Player::volumeUp()
+    {
+      sendBT201Command(BT201Commands::RAISE_VOLUME);
+      ++mCurrentVolume;
+    }
+
+    void MP3Player::volumeDown()
+    {
+      sendBT201Command(BT201Commands::LOWER_VOLUME);
+      --mCurrentVolume;
+    }
+    
+    void MP3Player::setVolume(int level)
+    {
+      if(level >= VOLUME_MIN and level <= VOLUME_MAX)
+      {
+        String comm = String(BT201Commands::SET_VOLUME) + String(level);
+        sendBT201Command(comm.c_str());
+        mCurrentVolume = level;
+      }
+    }
+    
 
     //File Operations
     void MP3Player::readAllPlaylists()

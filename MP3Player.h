@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 
 #include <HardwareSerial.h>
@@ -8,8 +9,6 @@
 
 namespace MP3Control
 {
-  
-
   class MP3Player
   {
     public:
@@ -31,6 +30,9 @@ namespace MP3Control
       static const SerialConfig BT201_CONFIGURATION = SERIAL_8N1;
       static const unsigned long BT201_BAUD_RATE=115200;
       static constexpr char* TIMEOUT_MSG = "TIMEOUT"; 
+
+      static constexpr int VOLUME_MIN = 0; 
+      static constexpr int VOLUME_MAX = 30; 
     
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -54,17 +56,23 @@ namespace MP3Control
       void readPlaylist();
 
       //Volume
-      bool raiseVolume();
+      void volumeUp();
+      void volumeDown();
+      void setVolume(int level);
       
 
       //Display Operations
       std::vector<String> getPlaylists();
       std::vector<String> getSongList();
 
+      //Accessors
+      int getVolume() { return mCurrentVolume; }
+
     private:
       bool mIsPlaying;
       PlayerMode mMode = PlayerMode::NOT_SET;
       PlayerSource mSource = PlayerSource::UKNOWN;
+      int mCurrentVolume = -1;
 
   };
 } //MP3Control

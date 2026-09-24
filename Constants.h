@@ -22,9 +22,11 @@ namespace MP3Control
       static constexpr char* RAISE_VOLUME   = "CB";
       static constexpr char* LOWER_VOLUME   = "CC";
       static constexpr char* TOGGLE_MUTE    = "CU02";
+      static constexpr char* SET_VOLUME  = "QA";
 
       //Query   
       static constexpr char* QUERY_MODE    = "QM";
+      static constexpr char* QUERY_VOLUME  = "QA";
   };
 
   class BT201Responses
