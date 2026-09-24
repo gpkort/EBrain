@@ -68,6 +68,11 @@ void loop() {
       {
         ptrPlayer->initBT201();
       }
+      else if(command == "S1")
+      {
+        ptrPlayer->sendBT201Command("AT+CP02");
+        //AT+CP02
+      }
       else
       {
         Serial.println("Unrecognized Command");
