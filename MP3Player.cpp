@@ -126,16 +126,18 @@ namespace MP3Control
     {
       String pl = "";
       std::vector<String> songs;
-      sendBT201Command("AT+AR/00_*.???\r\n"); 
+      sendBT201Command("AR/000_*/00_*.txt"); 
+      unsigned long start = millis();
       while(true)
       {   
         if (BT201Serial.available() > 0)
         {
+          Serial.println("call");
           char c = BT201Serial.read();
           Serial.println(c);
           pl += String(c);
 
-          if(c == "#")
+          if(c == '#')
           {
             Serial.println("Finished - " + pl);
             break;
@@ -147,21 +149,22 @@ namespace MP3Control
             break;
           }
         }
+        delay(150);
+        if(millis() - start > 8000) break;
       }
       return songs;      
     }
 
     std::vector<String> MP3Player::getSongList()
     {
-      std::vector<String> playlist;
-      sendBT201Command(comm.c_str());
-      if (BT201Serial.available() > 0)
-      {
-        auto message = BT201Serial.readString();
-        Serial.println(message);  
-        return(message);     
-      }
-      return playlist;
+      // std::vector<String> playlist;
+      // sendBT201Command(comm.c_str());
+      // if (BT201Serial.available() > 0)
+      // {
+      //   auto message = BT201Serial.readString();
+      //   Serial.println(message);  
+      // }
+      // return playlist;
     }
 
 } //MP3Control
