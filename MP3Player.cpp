@@ -1,3 +1,4 @@
+#include "WString.h"
 #include "MP3Player.h"
 
 namespace MP3Control
@@ -122,36 +123,36 @@ namespace MP3Control
     // }
 
     //Display Operations
-    std::vector<String> MP3Player::getPlaylist()
+    std::vector<String> MP3Player::getPlaylist(String cmd)
     {
       String pl = "";
       std::vector<String> songs;
-      sendBT201Command("AR/000_*/00_*.txt"); 
+      sendBT201Command(cmd.c_str()); 
       unsigned long start = millis();
-      while(true)
-      {   
-        if (BT201Serial.available() > 0)
+      // while(true)
+      // {   
+        if (BT201Serial.available() > 0) 
         {
-          Serial.println("call");
-          char c = BT201Serial.read();
-          Serial.println(c);
-          pl += String(c);
-
-          if(c == '#')
+          Serial.println("\n--- Data Received From BT201 ---");
+          
+          // Read the incoming bytes until the module finishes streaming
+          while (BT201Serial.available() > 0) 
           {
-            Serial.println("Finished - " + pl);
-            break;
-          }
-
-          if(pl.length() == 6 && pl.startsWith("ER+"))
-          {
-            Serial.println(pl);
-            break;
+            char c = BT201Serial.read();
+            Serial.write(c); 
+            
+            // Tiny delay to allow serial buffer to fill up if data is streaming fast
+            delayMicroseconds(100);
           }
         }
-        delay(150);
-        if(millis() - start > 8000) break;
-      }
+        Serial.println("\n--- End of Data Stream ---");
+    
+      //   delay(750);
+      //   unsigned long passed = millis() - start;
+      //   if(passed % 500 == 0) Serial.println(passed);
+      //   if(passed > 10000) break;
+      // }
+      Serial.println("Done");
       return songs;      
     }
 

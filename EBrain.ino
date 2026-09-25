@@ -49,18 +49,16 @@ void loop() {
     String command = Serial.readString();
     command.trim();
 
-    if(command.startsWith("AR"))
+    if(command.startsWith("AT+AR"))
     {
       Serial.println("AR Comm");
-      ptrPlayer->sendBT201Command(command.c_str());
+      ptrPlayer->getPlaylist(command.c_str());
       return;
     }
     command.toUpperCase();
 
     if(ptrPlayer != nullptr)
     {
-
-
       if(command == "P")
       {
         ptrPlayer->play_pause();
@@ -81,12 +79,7 @@ void loop() {
       {
         ptrPlayer->sendBT201Command("AT+CP02");
         //AT+CP02
-      }
-      else if(command == "PL")
-      {
-        ptrPlayer->getPlaylist();
-        //AT+CP02
-      }
+      }      
       else
       {
         Serial.println("Unrecognized Command");

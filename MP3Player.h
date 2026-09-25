@@ -62,7 +62,7 @@ namespace MP3Control
       
 
       //Display Operations
-      std::vector<String> getPlaylist();
+      std::vector<String> getPlaylist(String cmd);
       std::vector<String> getSongList();
 
       //Accessors
