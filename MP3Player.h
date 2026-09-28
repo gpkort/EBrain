@@ -6,6 +6,7 @@
 #include "Constants.h"
 
 #define BT201Serial Serial1
+typedef unsigned long ulong;
 
 namespace MP3Control
 {
@@ -29,7 +30,8 @@ namespace MP3Control
 
       static const SerialConfig BT201_CONFIGURATION = SERIAL_8N1;
       static const unsigned long BT201_BAUD_RATE=115200;
-      static constexpr char* TIMEOUT_MSG = "TIMEOUT"; 
+      static constexpr char* TIMEOUT_MSG = "TIMEOUT";
+      static constexpr unsigned long DEFAULT_TIMEOUT = 2000; 
 
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30; 
@@ -38,11 +40,7 @@ namespace MP3Control
       ~MP3Player();
 
       void responseHandler();
-      void sendBT201Command(const char* cmd);
-      String queryBT201(const char* cmd, unsigned long timeout=2000);
-
-      //Query
-
+      void sendBT201Command(const char* cmd, bool getReply=true, ulong timeout=DEFAULT_TIMEOUT);
 
       //Song Operations
       void play_pause();

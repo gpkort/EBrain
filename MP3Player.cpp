@@ -29,31 +29,30 @@ namespace MP3Control
       }
     }
 
-    void MP3Player::sendBT201Command(const char* cmd) {
+    String MP3Player::sendBT201Command(const char* cmd, bool getReply, unsigned long timeout) {
       Serial.println(cmd);
       BT201Serial.print(BT201Commands::AT_COMMAND);
       BT201Serial.print(cmd);
-      BT201Serial.print(BT201Commands::ENDING);  
-    }
+      BT201Serial.print(BT201Commands::ENDING); 
 
-    String MP3Player::queryBT201(const char* cmd, unsigned long timeout)
-    {
-      unsigned long start = millis();
-      sendBT201Command(cmd);
-
-      while((millis()-start) < timeout)
+      if(getReply)
       {
-        if (BT201Serial.available() > 0)
+        while((millis()-start) < timeout)
         {
-          auto message = BT201Serial.readString();
-          Serial.println(message);  
-          return(message);     
+          if (BT201Serial.available() > 0)
+          {
+            auto message = BT201Serial.readString();
+            Serial.println(message);  
+            return(message);     
+          }
         }
-      }
       Serial.println(MP3Player::TIMEOUT_MSG);
       return(String(MP3Player::TIMEOUT_MSG));
-    }
+      }
 
+      return "";
+    }
+    
     //Song Operations
     void MP3Player::play_pause()
     {
@@ -110,25 +109,13 @@ namespace MP3Control
       }
     }
     
-
-    //File Operations
-    // void MP3Player::readAllPlaylists()
-    // {
-    //   //
-    // }
-
-    // void MP3Player::readPlaylist()
-    // {
-    //   //
-    // }
-
-    //Display Operations
     std::vector<String> MP3Player::getPlaylist(String cmd)
     {
       String pl = "";
       std::vector<String> songs;
       sendBT201Command(cmd.c_str()); 
       unsigned long start = millis();
+      String message = "";
       // while(true)
       // {   
         if (BT201Serial.available() > 0) 
@@ -139,7 +126,8 @@ namespace MP3Control
           while (BT201Serial.available() > 0) 
           {
             char c = BT201Serial.read();
-            Serial.write(c); 
+            Serial.println(c); 
+            message += String(c);
             
             // Tiny delay to allow serial buffer to fill up if data is streaming fast
             delayMicroseconds(100);
@@ -152,7 +140,7 @@ namespace MP3Control
       //   if(passed % 500 == 0) Serial.println(passed);
       //   if(passed > 10000) break;
       // }
-      Serial.println("Done");
+      Serial.println(message);
       return songs;      
     }
 
@@ -168,4 +156,5 @@ namespace MP3Control
       // return playlist;
     }
 
+    
 } //MP3Control

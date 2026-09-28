@@ -52,6 +52,8 @@ void loop() {
     if(command.startsWith("AT+AR"))
     {
       Serial.println("AR Comm");
+      //CM07
+      ptrPlayer->sendBT201Command("CM03");
       ptrPlayer->getPlaylist(command.c_str());
       return;
     }
@@ -61,7 +63,8 @@ void loop() {
     {
       if(command == "P")
       {
-        ptrPlayer->play_pause();
+        // ptrPlayer->play_pause();
+        ptrPlayer->queryBT201("CB");
       }
       else if(command == "N")
       {
