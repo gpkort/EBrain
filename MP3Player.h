@@ -40,7 +40,12 @@ namespace MP3Control
       ~MP3Player();
 
       void responseHandler();
-      void sendBT201Command(const char* cmd, bool getReply=true, ulong timeout=DEFAULT_TIMEOUT);
+      void sendBT201Command(const char* cmd);
+      void sendBT201CommandStr(String cmd, bool sendEOL=true);
+      String queryBT201(const char* cmd, unsigned long timeout=2000);
+
+      //Query
+
 
       //Song Operations
       void play_pause();

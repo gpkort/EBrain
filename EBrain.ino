@@ -42,53 +42,30 @@ void setup() {
   Serial.println("All good 1 Done");
 }
 
-void loop() {
+void loop() 
+{
+  if (BT201Serial.available() > 0) 
+  {
+    Serial.println("\n--- Data Received From BT201 ---");
+    
+    while (BT201Serial.available() > 0) 
+    {
+      char c = BT201Serial.read();
+      Serial.write(c);      
+      delayMicroseconds(100);
+    }
+  }
     
   if(Serial.available() > 0)
   {
     String command = Serial.readString();
     command.trim();
-
-    if(command.startsWith("AT+AR"))
-    {
-      Serial.println("AR Comm");
-      //CM07
-      ptrPlayer->sendBT201Command("CM03");
-      ptrPlayer->getPlaylist(command.c_str());
-      return;
-    }
-    command.toUpperCase();
+    Serial.println("Command: " + command);
 
     if(ptrPlayer != nullptr)
     {
-      if(command == "P")
-      {
-        // ptrPlayer->play_pause();
-        ptrPlayer->queryBT201("CB");
-      }
-      else if(command == "N")
-      {
-        ptrPlayer->previousSong();
-      }
-      else if(command == "L")
-      {
-        ptrPlayer->nextSong();
-      }
-      else if(command == "I")
-      {
-        ptrPlayer->initBT201();
-      }
-      else if(command == "R")
-      {
-        ptrPlayer->sendBT201Command("AT+CP02");
-        //AT+CP02
-      }      
-      else
-      {
-        Serial.println("Unrecognized Command");
-      }
+      //BT201Serial.print(command);
+      ptrPlayer->sendBT201CommandStr(command);
     }
-    
   }
-
 }

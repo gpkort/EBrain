@@ -29,7 +29,12 @@ namespace MP3Control
       }
     }
 
-    String MP3Player::sendBT201Command(const char* cmd, bool getReply, unsigned long timeout) {
+    void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {
+      BT201Serial.print(cmd.c_str());
+      BT201Serial.print(BT201Commands::ENDING);
+    }
+
+    void MP3Player::sendBT201Command(const char* cmd) {
       Serial.println(cmd);
       BT201Serial.print(BT201Commands::AT_COMMAND);
       BT201Serial.print(cmd);
