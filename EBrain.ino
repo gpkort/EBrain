@@ -52,7 +52,8 @@ void loop()
     {
       char c = BT201Serial.read();
       Serial.write(c);      
-      delayMicroseconds(100);
+      //delayMicroseconds(500);
+      delay(50);
     }
   }
     

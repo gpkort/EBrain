@@ -31,7 +31,11 @@ namespace MP3Control
 
     void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {
       BT201Serial.print(cmd.c_str());
-      BT201Serial.print(BT201Commands::ENDING);
+      if(sendEOL)
+      {
+        BT201Serial.print(BT201Commands::ENDING); 
+      }
+      
     }
 
     void MP3Player::sendBT201Command(const char* cmd) {
@@ -40,22 +44,7 @@ namespace MP3Control
       BT201Serial.print(cmd);
       BT201Serial.print(BT201Commands::ENDING); 
 
-      if(getReply)
-      {
-        while((millis()-start) < timeout)
-        {
-          if (BT201Serial.available() > 0)
-          {
-            auto message = BT201Serial.readString();
-            Serial.println(message);  
-            return(message);     
-          }
-        }
-      Serial.println(MP3Player::TIMEOUT_MSG);
-      return(String(MP3Player::TIMEOUT_MSG));
-      }
-
-      return "";
+      
     }
     
     //Song Operations
