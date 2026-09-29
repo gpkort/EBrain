@@ -17,7 +17,11 @@ MP3Control::MP3Player* ptrPlayer = nullptr;
 //   }
 // }
 
+String testValue = "";
+bool readFile = false;
+
 void setup() {
+
   Serial.begin(115200);
   delay(3000);
   Serial.println("Starting....");
@@ -46,14 +50,37 @@ void loop()
 {
   if (BT201Serial.available() > 0) 
   {
-    Serial.println("\n--- Data Received From BT201 ---");
-    
-    while (BT201Serial.available() > 0) 
+   if(readFile)
+    {      
+      String temp = "";
+      while (BT201Serial.available() > 0) 
+      {      
+        char c = BT201Serial.read();
+        if(c != ' ' && c != 'O' && c != 'K')
+        {
+          temp += c;
+          if(temp.length() == 2)
+          {
+            int intc = (int)strtol(temp.c_str(), NULL, 16);
+            char cc = (char)intc;
+            testValue += cc;
+
+            if(cc == '#')
+            {
+              Serial.println("found " + testValue);
+              readFile = false;
+              testValue = "";
+              return;
+            }
+            temp = "";            
+          }
+        }
+        delayMicroseconds(100);
+      }
+    }
+    else 
     {
-      char c = BT201Serial.read();
-      Serial.write(c);      
-      //delayMicroseconds(500);
-      delay(50);
+      Serial.println(BT201Serial.readString());    
     }
   }
     
@@ -65,8 +92,14 @@ void loop()
 
     if(ptrPlayer != nullptr)
     {
-      //BT201Serial.print(command);
-      ptrPlayer->sendBT201CommandStr(command);
+      bool addEnd = true;
+      readFile = false;
+      if(command.startsWith("AT+AR"))
+      {
+        addEnd = false;
+        readFile = true;
+      }
+      ptrPlayer->sendBT201CommandStr(command, true);
     }
   }
 }

@@ -5,6 +5,7 @@ namespace MP3Control
 {
    MP3Player::MP3Player(int8_t rx, int8_t tx)
     {
+      BT201Serial.setRxBufferSize(256);
       BT201Serial.begin(BT201_BAUD_RATE, BT201_CONFIGURATION, rx, tx);
     }
 
@@ -22,11 +23,11 @@ namespace MP3Control
 
     void MP3Player::responseHandler()
     {
-      if (BT201Serial.available() > 0)
-      {
-        auto message = BT201Serial.readString();
-        Serial.println(message);        
-      }
+      // if (BT201Serial.available() > 0)
+      // {
+      //   auto message = BT201Serial.readString();
+      //   Serial.println(message);        
+      // }
     }
 
     void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {
@@ -107,34 +108,34 @@ namespace MP3Control
     {
       String pl = "";
       std::vector<String> songs;
-      sendBT201Command(cmd.c_str()); 
-      unsigned long start = millis();
-      String message = "";
-      // while(true)
-      // {   
-        if (BT201Serial.available() > 0) 
-        {
-          Serial.println("\n--- Data Received From BT201 ---");
+      // sendBT201Command(cmd.c_str()); 
+      // unsigned long start = millis();
+      // String message = "";
+      // // while(true)
+      // // {   
+      //   if (BT201Serial.available() > 0) 
+      //   {
+      //     Serial.println("\n--- Data Received From BT201 ---");
           
-          // Read the incoming bytes until the module finishes streaming
-          while (BT201Serial.available() > 0) 
-          {
-            char c = BT201Serial.read();
-            Serial.println(c); 
-            message += String(c);
+      //     // Read the incoming bytes until the module finishes streaming
+      //     while (BT201Serial.available() > 0) 
+      //     {
+      //       char c = BT201Serial.read();
+      //       Serial.println(c); 
+      //       message += String(c);
             
-            // Tiny delay to allow serial buffer to fill up if data is streaming fast
-            delayMicroseconds(100);
-          }
-        }
-        Serial.println("\n--- End of Data Stream ---");
+      //       // Tiny delay to allow serial buffer to fill up if data is streaming fast
+      //       delayMicroseconds(100);
+      //     }
+      //   }
+      //   Serial.println("\n--- End of Data Stream ---");
     
-      //   delay(750);
-      //   unsigned long passed = millis() - start;
-      //   if(passed % 500 == 0) Serial.println(passed);
-      //   if(passed > 10000) break;
-      // }
-      Serial.println(message);
+      // //   delay(750);
+      // //   unsigned long passed = millis() - start;
+      // //   if(passed % 500 == 0) Serial.println(passed);
+      // //   if(passed > 10000) break;
+      // // }
+      // Serial.println(message);
       return songs;      
     }
 
