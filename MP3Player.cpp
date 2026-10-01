@@ -1,3 +1,5 @@
+#include "HardwareSerial.h"
+#include "esp32-hal.h"
 #include "WString.h"
 #include "MP3Player.h"
 
@@ -7,65 +9,164 @@ namespace MP3Control
     {
       BT201Serial.setRxBufferSize(256);
       BT201Serial.begin(BT201_BAUD_RATE, BT201_CONFIGURATION, rx, tx);
+      serialMutex = xSemaphoreCreateBinary();
+      if(serialMutex != NULL)
+      {
+        xSemaphoreGive(serialMutex);
+      }
     }
 
     MP3Player::~MP3Player(){}
 
-    /*
-    M1+0000000E    The file playing by the current device is 0x0E
-    M2+0000000F   The total number of files on the current device is 0x0F. Note that it is a legitimate audio file.
-    MT+0000001E   The total time of the current file is 0x1E seconds
-    MK+00000004    The current file has been played to 0x04 seconds
-    MF+XXXXXXX    The name of the file currently playing is xxxxx.Here the file name is complete
-
-    3.2.5 Music-related query instructions
-    */
-
     void MP3Player::responseHandler()
     {
-      // if (BT201Serial.available() > 0)
-      // {
-      //   auto message = BT201Serial.readString();
-      //   Serial.println(message);        
-      // }
+      if (BT201Serial.available() > 0) 
+      {
+        if(1==1)
+        {      
+          String temp = "";
+          mFileContent = "";
+          mIsFileReady = false;
+          while (BT201Serial.available() > 0) 
+          {      
+            char c = BT201Serial.read();
+            if(c != ' ' && c != 'O' && c != 'K')
+            {
+              temp += c;
+              if(temp.length() == 2)
+              {
+                int intc = (int)strtol(temp.c_str(), NULL, 16);
+                char cc = (char)intc;
+                mFileContent += cc;
+
+                if(cc == '#')
+                {
+                  mIsFileReady = true;
+                  return;
+                }
+                temp = "";            
+              }
+            }
+            delayMicroseconds(100);
+          }
+        }
+        else 
+        {
+          Serial.println(BT201Serial.readString());    
+        }
+      }
     }
 
-    void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {
-      BT201Serial.print(cmd.c_str());
+
+    void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {      
       if(sendEOL)
       {
-        BT201Serial.print(BT201Commands::ENDING); 
+        Serial.println("Adding");
+        cmd += BT201Commands::ENDING;
       }
-      
+      Serial.println(cmd);
+      BT201Serial.print(cmd.c_str());      
     }
 
     void MP3Player::sendBT201Command(const char* cmd) {
       Serial.println(cmd);
       BT201Serial.print(BT201Commands::AT_COMMAND);
       BT201Serial.print(cmd);
-      BT201Serial.print(BT201Commands::ENDING); 
+      BT201Serial.print(BT201Commands::ENDING);      
+    }
 
-      
+    String MP3Player::queryBT201(String cmd, bool sendEOL)
+    {
+      sendBT201CommandStr(cmd, sendEOL);
+      return getResponse();
+    }
+
+    String MP3Player::queryBT201(const char* cmd)
+    {
+      sendBT201Command(cmd);
+      return getResponse();
+    }
+
+    void MP3Player::retrievePlaylistInfo()
+    {
+      if (xSemaphoreTake(serialMutex, 2000)) 
+      {
+        int try_num = 0;
+        sendBT201Command(BT201Commands::READ_FILE);
+        mFileContent = "";
+        mIsFileReady = false;
+
+        while(try_num < NUM_BUFFER_READS)
+        {
+          String temp = "";         
+          if(BT201Serial.available() > 0) 
+          {
+            char c = BT201Serial.read();
+            if(c != ' ' && c != 'O' && c != 'K')
+            {
+              temp += c;
+              if(temp.length() == 2)
+              {
+                int intc = (int)strtol(temp.c_str(), NULL, 16);
+                char cc = (char)intc;
+                mFileContent += cc;
+
+                if(cc == '#')
+                {
+                  try_num = NUM_BUFFER_READS;
+                  break;
+                }
+                temp = "";
+              }
+            }
+            delayMicroseconds(100);
+          }
+          delayMicroseconds(200);
+        }
+        xSemaphoreGive(serialMutex);
+      }
+    }
+
+    void MP3Player::initBT201()
+    {
+      unsigned long start = millis();
+      if(mMode == PlayerMode::NOTSET)
+      {        
+        auto res = queryBT201(BT201Commands::USE_SD_CARD);
+        Serial.println("SD: " + res);
+
+        res = queryBT201(BT201Commands::QUERY_MODE);  
+        Serial.println("Mode: " + res);
+        if(res == BT201Responses::SD_CARD_MUSIC_MODE)
+        {
+          Serial.println("GO MUSIC");
+          mMode = PlayerMode::MUSIC;
+        }
+        res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+        Serial.println("PB: " + res);
+        if(res == BT201Responses::RESPONSE_MUSIC_STATE_STOPPED) {
+          mMusicState = MusicState::STOPPED;          
+        }
+        else if(res == BT201Responses::RESPONSE_MUSIC_STATE_PLAYING) {
+          mMusicState = MusicState::PLAYING;
+        }
+        else if(res == BT201Responses::RESPONSE_MUSIC_STATE_PAUSED) {
+          mMusicState = MusicState::PAUSED;
+        }
+
+        if(mMusicState != MusicState::STOPPED)
+        {
+          queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+        }
+
+      }
     }
     
     //Song Operations
     void MP3Player::play_pause()
     {
       sendBT201Command(BT201Commands::PP_SONG);
-    }
-    void MP3Player::initBT201()
-    {
-      unsigned long start = millis();
-      if(mMode == PlayerMode::NOT_SET)
-      {
-        sendBT201Command(BT201Commands::USE_SD_CARD);
-        if(queryBT201(BT201Commands::QUERY_MODE) == String(BT201Responses::SD_CARD_MUSIC_MODE))
-        {
-          Serial.println("Good to go");
-          mMode = PlayerMode::MUSIC;
-        }
-      }
-    }
+    }    
 
     void MP3Player::previousSong()
     {
@@ -149,6 +250,34 @@ namespace MP3Control
       //   Serial.println(message);  
       // }
       // return playlist;
+    }
+
+    String MP3Player::getResponse()
+    {
+      String serialString = "";
+      Serial.println("Getting response " + (serialMutex != NULL ? String("ready") : String("NULL")));
+      if (xSemaphoreTake(serialMutex, 2000)) 
+      {
+        Serial.println("Ready to read");
+        int try_num = 0;
+        while(try_num < NUM_BUFFER_READS)
+        {
+          if(BT201Serial.available() > 0)
+          {
+            serialString = BT201Serial.readString();
+            break;
+          }
+          delayMicroseconds(1000);
+          try_num++;
+        }
+        xSemaphoreGive(serialMutex);        
+      }
+      else {
+        Serial.println("Can't Take");
+      }
+     
+      return serialString;
+
     }
 
     

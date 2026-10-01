@@ -15,9 +15,17 @@ namespace MP3Control
     public:
       enum PlayerMode
       {
-        NOT_SET = 0,
+        NOTSET = 0,
         MUSIC = 1,
         RECORD = 2
+      };
+
+      enum MusicState
+      {
+        NOT_SET = 0,
+        PLAYING = 1,
+        PAUSED  = 2,
+        STOPPED = 3
       };
       
       enum PlayerSource
@@ -34,7 +42,9 @@ namespace MP3Control
       static constexpr unsigned long DEFAULT_TIMEOUT = 2000; 
 
       static constexpr int VOLUME_MIN = 0; 
-      static constexpr int VOLUME_MAX = 30; 
+      static constexpr int VOLUME_MAX = 30;
+
+      static constexpr int NUM_BUFFER_READS = 50; 
     
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -42,7 +52,8 @@ namespace MP3Control
       void responseHandler();
       void sendBT201Command(const char* cmd);
       void sendBT201CommandStr(String cmd, bool sendEOL=true);
-      String queryBT201(const char* cmd, unsigned long timeout=2000);
+      String queryBT201(const char* cmd);
+      String queryBT201(String cmd, bool sendEOL=true);
 
       //Query
 
@@ -72,10 +83,17 @@ namespace MP3Control
       int getVolume() { return mCurrentVolume; }
 
     private:
-      bool mIsPlaying;
-      PlayerMode mMode = PlayerMode::NOT_SET;
+      void retrievePlaylistInfo();
+      String getResponse();
+
+      MusicState mMusicState = MusicState::NOT_SET;
+      PlayerMode mMode = PlayerMode::NOTSET;
       PlayerSource mSource = PlayerSource::UKNOWN;
       int mCurrentVolume = -1;
+      String mFileContent;
+      bool mIsFileReady = false;
+
+      SemaphoreHandle_t serialMutex = NULL;
 
   };
 } //MP3Control

@@ -48,41 +48,45 @@ void setup() {
 
 void loop() 
 {
-  if (BT201Serial.available() > 0) 
+  if(ptrPlayer != nullptr)
   {
-   if(readFile)
-    {      
-      String temp = "";
-      while (BT201Serial.available() > 0) 
-      {      
-        char c = BT201Serial.read();
-        if(c != ' ' && c != 'O' && c != 'K')
-        {
-          temp += c;
-          if(temp.length() == 2)
-          {
-            int intc = (int)strtol(temp.c_str(), NULL, 16);
-            char cc = (char)intc;
-            testValue += cc;
-
-            if(cc == '#')
-            {
-              Serial.println("found " + testValue);
-              readFile = false;
-              testValue = "";
-              return;
-            }
-            temp = "";            
-          }
-        }
-        delayMicroseconds(100);
-      }
-    }
-    else 
-    {
-      Serial.println(BT201Serial.readString());    
-    }
+    ptrPlayer->responseHandler();
   }
+  // if (BT201Serial.available() > 0) 
+  // {
+  //  if(readFile)
+  //   {      
+  //     String temp = "";
+  //     while (BT201Serial.available() > 0) 
+  //     {      
+  //       char c = BT201Serial.read();
+  //       if(c != ' ' && c != 'O' && c != 'K')
+  //       {
+  //         temp += c;
+  //         if(temp.length() == 2)
+  //         {
+  //           int intc = (int)strtol(temp.c_str(), NULL, 16);
+  //           char cc = (char)intc;
+  //           testValue += cc;
+
+  //           if(cc == '#')
+  //           {
+  //             Serial.println("found " + testValue);
+  //             readFile = false;
+  //             testValue = "";
+  //             return;
+  //           }
+  //           temp = "";            
+  //         }
+  //       }
+  //       delayMicroseconds(100);
+  //     }
+  //   }
+  //   else 
+  //   {
+  //     Serial.println(BT201Serial.readString());    
+  //   }
+  // }
     
   if(Serial.available() > 0)
   {
@@ -92,14 +96,27 @@ void loop()
 
     if(ptrPlayer != nullptr)
     {
-      bool addEnd = true;
-      readFile = false;
-      if(command.startsWith("AT+AR"))
+      // bool addEnd = true;
+      // readFile = false;
+      // if(command.startsWith("AT+AR"))
+      // {
+      //   ptrPlayer->sendBT201CommandStr(command, true);
+      // }
+      if(command == "i")
       {
-        addEnd = false;
-        readFile = true;
+        ptrPlayer->initBT201();
       }
-      ptrPlayer->sendBT201CommandStr(command, true);
+      else if(command.startsWith("AT+"))
+      {
+        bool addend = command.endsWith("#");
+
+        if(addend)
+        {
+          command.replace("#", "");
+        }
+        Serial.println(ptrPlayer->queryBT201(command, !addend));
+      }
+      
     }
   }
 }

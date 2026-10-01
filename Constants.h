@@ -17,6 +17,7 @@ namespace MP3Control
       static constexpr char* PP_SONG        = "CB";
       static constexpr char* NEXT_SONG      = "CC";
       static constexpr char* PREVIOUS_SONG  = "CE";
+      static constexpr char* STOP_SONG      = "AA00";
 
       //VOLUME
       static constexpr char* RAISE_VOLUME   = "CB";
@@ -34,18 +35,25 @@ namespace MP3Control
       static constexpr char* QUERY_PLAYBACK_TOTAL_TIME    = "MT";
       static constexpr char* QUERY_PLAYBACK_PLAYING_TIME  = "MK";
 
-      //  MK, MT
+      // File Read
+      static constexpr char* READ_FILE                 = "AR//USB_UPDA//read.txt";
+      
   };
 
   class BT201Responses
   {
     public:
-      static constexpr char* SD_CARD_MUSIC_MODE              = "QM+03";
-      static constexpr char* RESPONSE_FILE_NUM               = "M1";
-      static constexpr char* RESPONSE_PLAYBACK_MODE          = "MC";
-      static constexpr char* RESPONSE_PLAYBACK_DEVICE        = "MD";
-      static constexpr char* RESPONSE_PLAYBACK_STATUS        = "MP";
-      static constexpr char* RESPONSE_PLAYBACK_TOTAL_TIME    = "MT";
-      static constexpr char* RESPONSE_PLAYBACK_PLAYING_TIME  = "MK";
+      inline static const String SD_CARD_MUSIC_MODE              = "QM+03";
+      inline static const String RESPONSE_FILE_NUM               = "M1";
+      inline static const String RESPONSE_PLAYBACK_MODE          = "MC";
+      inline static const String RESPONSE_PLAYBACK_DEVICE        = "MD";
+      inline static const String RESPONSE_PLAYBACK_STATUS        = "MP";
+      inline static const String RESPONSE_PLAYBACK_TOTAL_TIME    = "MT";
+      inline static const String RESPONSE_PLAYBACK_PLAYING_TIME  = "MK";
+
+      inline static const String RESPONSE_MUSIC_STATE_STOPPED  = "MP+00";
+      inline static const String RESPONSE_MUSIC_STATE_PLAYING  = "MP+01";
+      inline static const String RESPONSE_MUSIC_STATE_PAUSED   = "MP+02";
+      
   };
 }//BT201
