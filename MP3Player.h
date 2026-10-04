@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <map>
 
 #include <HardwareSerial.h>
 #include "Constants.h"
@@ -10,6 +10,12 @@ typedef unsigned long ulong;
 
 namespace MP3Control
 {
+  struct PlaylistInfo
+  {
+    std::map<int, String> playLists;
+    std::map<int, String> songLists;
+  };
+
   class MP3Player
   {
     public:
@@ -28,24 +34,14 @@ namespace MP3Control
         STOPPED = 3
       };
       
-      enum PlayerSource
-      {
-        UKNOWN = 0,
-        SD_CARD = 1
-        // USB_DRIVE = 2,
-        // BLUTOOTH = 3
-      };
-
       static const SerialConfig BT201_CONFIGURATION = SERIAL_8N1;
       static const unsigned long BT201_BAUD_RATE=115200;
       static constexpr char* TIMEOUT_MSG = "TIMEOUT";
-      static constexpr unsigned long DEFAULT_TIMEOUT = 2000; 
+      static constexpr int DEFAULT_TIMEOUT = 5000; 
 
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30;
-
-      static constexpr int NUM_BUFFER_READS = 50; 
-    
+      
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
 
@@ -65,6 +61,9 @@ namespace MP3Control
       void nextSong();
       void playSong();
 
+      bool setPlayerMode();
+      bool stopPlayer();
+
       //File Operations
       void readAllPlaylists();
       void readPlaylist();
@@ -83,18 +82,19 @@ namespace MP3Control
       int getVolume() { return mCurrentVolume; }
 
     private:
-      void retrievePlaylistInfo();
-      String getResponse();
+      String retrievePlaylistFile(int timeout=DEFAULT_TIMEOUT);
+      String getResponse(int timeout=DEFAULT_TIMEOUT);
+      String parsePlaylist(String playListData);
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
-      PlayerSource mSource = PlayerSource::UKNOWN;
+
+      PlaylistInfo mPlaylistInfo;
       int mCurrentVolume = -1;
       String mFileContent;
       bool mIsFileReady = false;
 
       SemaphoreHandle_t serialMutex = NULL;
-
   };
 } //MP3Control
 

@@ -36,7 +36,7 @@ namespace MP3Control
       static constexpr char* QUERY_PLAYBACK_PLAYING_TIME  = "MK";
 
       // File Read
-      static constexpr char* READ_FILE                 = "AR//USB_UPDA//read.txt";
+      static constexpr char* READ_FILE                 = "AR/USB_UPDA/read.txt";
       
   };
 
