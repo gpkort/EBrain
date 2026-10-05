@@ -1,8 +1,9 @@
-#include <exception>
-#include "HardwareSerial.h"
+#include "MP3Player.h"
+// #include "HardwareSerial.h"
+
+
 #include "esp32-hal.h"
 #include "WString.h"
-#include "MP3Player.h"
 
 namespace MP3Control
 {
@@ -125,7 +126,7 @@ namespace MP3Control
         }
       }
       delayMicroseconds(1000);
-      while(Serial.available()) { Serial.read();}
+      // while(Serial.available()) { Serial.read();}
       Serial.println("PL: " + retrievePlaylistFile());        
     }
         
@@ -282,6 +283,35 @@ namespace MP3Control
     void MP3Player::clearSerialBuffer()
     {
       while(BT201Serial.available()){BT201Serial.read();}
+    }
+
+    String MP3Player::parsePlaylist(String playListData)
+    {
+      Serial.println(playListData);
+      int idx = 0;
+      auto lastIdx = playListData.lastIndexOf(PLAYLIST_SEPERATOR);
+      std::vector<String> pls;
+      Serial.println("Starting Parsing " + String(lastIdx));
+      if(lastIdx != -1 && idx != lastIdx)
+      {        
+        while(idx < lastIdx)
+        {
+          auto tidx = playListData.indexOf(PLAYLIST_SEPERATOR, idx);
+          Serial.println("Tidx: " + String(tidx));
+          if(tidx != -1)
+          {
+            //pls.push_back(playListData.substring(idx, tidx));
+            idx = tidx;
+          }
+        }
+        // pls.push_back(playListData.substring(lastIdx));
+      }
+
+      // for(auto& s : pls)
+      // {
+      //   Serial.println(s);
+      // }
+      return "";
     }
 
     

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-
+#include <vector>
 #include <HardwareSerial.h>
 #include "Constants.h"
 
@@ -41,6 +41,8 @@ namespace MP3Control
 
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30;
+
+      static constexpr char PLAYLIST_SEPERATOR = '|';
       
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -80,11 +82,12 @@ namespace MP3Control
 
       //Accessors
       int getVolume() { return mCurrentVolume; }
+      String parsePlaylist(String playListData);
 
     private:
       String retrievePlaylistFile(int timeout=DEFAULT_TIMEOUT);
       String getResponse(int timeout=DEFAULT_TIMEOUT);
-      String parsePlaylist(String playListData);
+      // String parsePlaylist(String playListData);
       void clearSerialBuffer();
 
       MusicState mMusicState = MusicState::NOT_SET;
