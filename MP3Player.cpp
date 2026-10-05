@@ -58,15 +58,13 @@ namespace MP3Control
     void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {      
       if(sendEOL)
       {
-        Serial.println("Adding");
         cmd += BT201Commands::ENDING;
       }
-      Serial.println(cmd);
       BT201Serial.print(cmd.c_str());      
     }
 
     void MP3Player::sendBT201Command(const char* cmd) {
-      Serial.println(cmd);
+      Serial.println("Command: " + String(cmd));
       BT201Serial.print(BT201Commands::AT_COMMAND);
       BT201Serial.print(cmd);
       BT201Serial.print(BT201Commands::ENDING);      
@@ -86,8 +84,9 @@ namespace MP3Control
 
     bool MP3Player::setPlayerMode()
     {
+
       queryBT201(BT201Commands::USE_SD_CARD);
-      delay(200);
+      delayMicroseconds(200);
       auto res = queryBT201(BT201Commands::QUERY_MODE);
       res.trim();      
       return res.startsWith(BT201Responses::SD_CARD_MUSIC_MODE);
@@ -104,6 +103,7 @@ namespace MP3Control
     void MP3Player::initBT201()
     {
       unsigned long start = millis();
+      
       if(mMode != PlayerMode::MUSIC)
       {        
         if(setPlayerMode())
@@ -116,6 +116,7 @@ namespace MP3Control
         }
         if(stopPlayer())
         {
+          Serial.println("Setting state");
           mMusicState = MusicState::STOPPED;
         }
         else {
@@ -123,7 +124,8 @@ namespace MP3Control
           return;
         }
       }
-      
+      delayMicroseconds(1000);
+      while(Serial.available()) { Serial.read();}
       Serial.println("PL: " + retrievePlaylistFile());        
     }
         
@@ -220,43 +222,36 @@ namespace MP3Control
     String MP3Player::retrievePlaylistFile(int timeout)
     {
       int start = millis();
+      while(Serial.available()) { Serial.read();}
       String fileContent = "";
-      try
+      if (xSemaphoreTake(serialMutex, 2000)) 
       {
-        if (xSemaphoreTake(serialMutex, 2000)) 
-        {
-          int try_num = 0;
-          sendBT201Command(BT201Commands::READ_FILE);          
-
-          while((millis() - start) < timeout)
+        int try_num = 0;
+        sendBT201Command(BT201Commands::READ_FILE);          
+        delayMicroseconds(200);
+        while((millis() - start) < timeout)
+        {            
+          String temp = "";         
+          while(BT201Serial.available() > 0) 
           {
-            
-            String temp = "";         
-            if(BT201Serial.available() > 0) 
+            char c = BT201Serial.read();
+            if(c != ' ' && c != 'O' && c != 'K')
             {
-              char c = BT201Serial.read();
-              Serial.println("Loop " + c);
-              if(c != ' ' && c != 'O' && c != 'K')
+              temp += c;
+              if(temp.length() == 2)
               {
-                temp += c;
-                if(temp.length() == 2)
-                {
-                  int intc = (int)strtol(temp.c_str(), NULL, 16);
-                  char cc = (char)intc;
-                  fileContent += cc;
-                  Serial.println("If " + cc);
-                  temp = "";
-
-                  if(cc == '#') { break; }                
-                }
+                int intc = (int)strtol(temp.c_str(), NULL, 16);
+                char cc = (char)intc;
+                fileContent += cc;
+                temp = "";
+                if(cc == '#') { break; }                
               }
-              delayMicroseconds(100);
             }
-          }        
-        }
+            delayMicroseconds(100);
+          }
+          
+        }        
       }
-      catch (std::exception e) {fileContent = "ERR: " + String(e.what());}
-      
       xSemaphoreGive(serialMutex);
       return fileContent;      
     }
@@ -267,7 +262,6 @@ namespace MP3Control
       int start = millis();
       if (xSemaphoreTake(serialMutex, 2000)) 
       {
-        Serial.println("Ready to read");
         int try_num = 0;
         while((millis() - start) < timeout)
         {
@@ -278,14 +272,16 @@ namespace MP3Control
           }
           delayMicroseconds(1000);
         }
+        clearSerialBuffer();
         xSemaphoreGive(serialMutex);        
       }
-      else {
-        Serial.println("Can't Take");
-      }
-     
+           
       return serialString;
+    }
 
+    void MP3Player::clearSerialBuffer()
+    {
+      while(BT201Serial.available()){BT201Serial.read();}
     }
 
     

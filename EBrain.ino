@@ -42,7 +42,8 @@ void setup() {
   
   ptrPlayer = new (psramMemory) MP3Control::MP3Player(MP3_RX, MP3_TX); 
   Serial.printf("ptr Board: %d \n", ptrPlayer);
-  // xTaskCreatePinnedToCore(taskHandler, "SerialListener", 10000, NULL, 0, &task1, 0); 
+  if(ptrPlayer)
+    ptrPlayer->initBT201();
   Serial.println("All good 1 Done");
 }
 
@@ -87,7 +88,7 @@ void loop()
   //     Serial.println(BT201Serial.readString());    
   //   }
   // }
-    
+  /*
   if(Serial.available() > 0)
   {
     String command = Serial.readString();
@@ -114,9 +115,10 @@ void loop()
         {
           command.replace("#", "");
         }
-        Serial.println(ptrPlayer->queryBT201(command, !addend));
+        ptrPlayer->queryBT201(command, !addend);
       }
-      
+      delay(2500);
     }
   }
+  */
 }

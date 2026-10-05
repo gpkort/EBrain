@@ -85,6 +85,7 @@ namespace MP3Control
       String retrievePlaylistFile(int timeout=DEFAULT_TIMEOUT);
       String getResponse(int timeout=DEFAULT_TIMEOUT);
       String parsePlaylist(String playListData);
+      void clearSerialBuffer();
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
