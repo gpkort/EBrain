@@ -45,7 +45,7 @@ void setup() {
   // if(ptrPlayer)
   //   ptrPlayer->initBT201();
 
-  if(ptrPlayer) ptrPlayer->parsePlaylist(fileContents);
+  // if(ptrPlayer) ptrPlayer->parsePlaylist(fileContents);
   
   Serial.println("All good 1 Done");
 }

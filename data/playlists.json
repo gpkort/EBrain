@@ -1,0 +1,173 @@
+{
+  "playlists": [
+    {
+      "id": 1,
+      "name": "Welcome Interstate Managers",
+      "dir": "01_Welcome_Interstate_Managers",
+      "songs": [
+        {
+		  "idx":16,
+          "name": "Yours And Mine",
+          "file": "16_Yours_And_Mine"
+        },
+        {
+		  "idx":15,
+          "name": "Supercollider",
+          "file": "15_Supercollider"
+        },
+        {
+		  "idx":17,
+          "name": "Elevator Up",
+          "file": "17_Elevator_Up"
+        },
+        {
+		  "idx":5,
+          "name": "No Better Place",
+          "file": "05_No_Better_Place"
+        },
+        {
+		  "idx":7,
+          "name": "All Kinds Of Time",
+          "file": "07_All_Kinds_Of_Time"
+        },
+        {
+		  "idx":11,
+          "name": "Hung Up On You",
+          "file": "11_Hung_Up_On_You"
+        },
+        {
+		  "idx":14,
+          "name": "Bought For A Song",
+          "file": "14_Bought_For_A_Song"
+        },
+        {
+		  "idx":9,
+          "name": "Valley Winter Song",
+          "file": "06_Valley_Winter_Song"
+        },
+        {
+		  "idx":8,
+          "name": "Little Red Light",
+          "file": "08_Little_Red_Light"
+        },
+        {
+		  "idx":10,
+          "name": "Halleys Waitress",
+          "file": "10_Halleys_Waitress"
+        },
+        {
+		  "idx":13,
+          "name": "Peace And Love",
+          "file": "13_Peace_And_Love"
+        },
+        {
+		  "idx":3,
+          "name": "Stacys mom",
+          "file": "03_Stacys_mom"
+        },
+        {
+		  "idx":4,
+          "name": "Hackensack",
+          "file": "04_Hackensack"
+        },
+        {
+		  "idx":9,
+          "name": "Hey Julie",
+          "file": "09_Hey_Julie"
+        },
+        {
+		  "idx":1,
+          "name": "Mexican Wine",
+          "file": "01_Mexican_Wine"
+        },
+        {
+		  "idx":2,
+          "name": "Bright Future In Sales",
+          "file": "02_Bright_Future_In_Sales"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "The Flyer",
+      "dir": "02_The_Flyer",
+      "songs": [
+        {
+		  "idx":1,
+          "name": "The_Flyer",
+          "file": "01_The_Flyer"
+        },
+        {
+		  "idx":2,
+          "name": "Nobodys_Angel",
+          "file": "02_Nobodys_Angel"
+        },
+        {
+		  "idx":3,
+          "name": "Say It Isn't So",
+          "file": "03_Say_It_Isn't_So"
+        },
+        {
+		  "idx":4,
+          "name": "Southbound Train",
+          "file": "04_Southbound_Train"
+        },
+        {
+		  "idx":5,
+          "name": "These Days in an Open Book",
+          "file": "05_These_Days_in_an_Open_Book"
+        },
+        {
+		  "idx":6,
+          "name": "Time of Inconvenience",
+          "file": "06_Time_of_Inconvenience"
+        },
+        {
+		  "idx":7,
+          "name": "Dont Forget About Me",
+          "file": "07 Dont_Forget_About_Me"
+        },
+        {
+		  "idx":8,
+          "name": "Always Will",
+          "file": "08_Always_Will"
+        },
+        {
+		  "idx":9,
+          "name": "Going Back to Georgia",
+          "file": "09_Going_Back_to_Georgia"
+        },
+        {
+		  "idx":10,
+          "name": "Talk to Me While I'm_Listening",
+          "file": "10_Talk_to_Me_While_Im_Listening"
+        },
+        {
+		  "idx":11,
+          "name": "Fragile",
+          "file": "11_Fragile"
+        },
+        {
+		  "idx":12,
+          "name": "On Grafton Street",
+          "file": "12_On_Grafton_Street"
+        },
+        {
+		  "idx":13,
+          "name": "Anything You Need but Me",
+          "file": "13_Anything_You_Need_but_Me"
+        },
+        {
+		  "idx":14,
+          "name": "Goodnight to Mothers Dream",
+          "file": "14_Goodnight_to_Mothers_Dream"
+        },
+        {
+		  "idx":15,
+          "name": "This Heart",
+          "file": "15_This_Heart"
+        }
+      ]
+    }
+  ]
+}
