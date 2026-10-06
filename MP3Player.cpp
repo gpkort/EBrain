@@ -1,9 +1,4 @@
 #include "MP3Player.h"
-// #include "HardwareSerial.h"
-
-
-#include "esp32-hal.h"
-#include "WString.h"
 
 namespace MP3Control
 {
@@ -16,46 +11,7 @@ namespace MP3Control
     }
 
     MP3Player::~MP3Player(){}
-
-    void MP3Player::responseHandler()
-    {
-      if (BT201Serial.available() > 0) 
-      {
-        if(1==1)
-        {      
-          String temp = "";
-          mFileContent = "";
-          mIsFileReady = false;
-          while (BT201Serial.available() > 0) 
-          {      
-            char c = BT201Serial.read();
-            if(c != ' ' && c != 'O' && c != 'K')
-            {
-              temp += c;
-              if(temp.length() == 2)
-              {
-                int intc = (int)strtol(temp.c_str(), NULL, 16);
-                char cc = (char)intc;
-                mFileContent += cc;
-
-                if(cc == '#')
-                {
-                  mIsFileReady = true;
-                  return;
-                }
-                temp = "";            
-              }
-            }
-            delayMicroseconds(100);
-          }
-        }
-        else 
-        {
-          Serial.println(BT201Serial.readString());    
-        }
-      }
-    }
-
+    
     void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {      
       if(sendEOL)
       {
@@ -124,10 +80,7 @@ namespace MP3Control
           Serial.println("Can't set state");
           return;
         }
-      }
-      delayMicroseconds(1000);
-      // while(Serial.available()) { Serial.read();}
-      Serial.println("PL: " + retrievePlaylistFile());        
+      }              
     }
         
     //Song Operations
@@ -219,44 +172,7 @@ namespace MP3Control
       // }
       // return playlist;
     }
-    
-    String MP3Player::retrievePlaylistFile(int timeout)
-    {
-      int start = millis();
-      while(Serial.available()) { Serial.read();}
-      String fileContent = "";
-      if (xSemaphoreTake(serialMutex, 2000)) 
-      {
-        int try_num = 0;
-        sendBT201Command(BT201Commands::READ_FILE);          
-        delayMicroseconds(200);
-        while((millis() - start) < timeout)
-        {            
-          String temp = "";         
-          while(BT201Serial.available() > 0) 
-          {
-            char c = BT201Serial.read();
-            if(c != ' ' && c != 'O' && c != 'K')
-            {
-              temp += c;
-              if(temp.length() == 2)
-              {
-                int intc = (int)strtol(temp.c_str(), NULL, 16);
-                char cc = (char)intc;
-                fileContent += cc;
-                temp = "";
-                if(cc == '#') { break; }                
-              }
-            }
-            delayMicroseconds(100);
-          }
-          
-        }        
-      }
-      xSemaphoreGive(serialMutex);
-      return fileContent;      
-    }
-
+        
     String MP3Player::getResponse(int timeout)
     {
       String serialString = "";
@@ -285,34 +201,4 @@ namespace MP3Control
       while(BT201Serial.available()){BT201Serial.read();}
     }
 
-    String MP3Player::parsePlaylist(String playListData)
-    {
-      Serial.println(playListData);
-      int idx = 0;
-      auto lastIdx = playListData.lastIndexOf(PLAYLIST_SEPERATOR);
-      std::vector<String> pls;
-      Serial.println("Starting Parsing " + String(lastIdx));
-      if(lastIdx != -1 && idx != lastIdx)
-      {        
-        while(idx < lastIdx)
-        {
-          auto tidx = playListData.indexOf(PLAYLIST_SEPERATOR, idx);
-          Serial.println("Tidx: " + String(tidx));
-          if(tidx != -1)
-          {
-            //pls.push_back(playListData.substring(idx, tidx));
-            idx = tidx;
-          }
-        }
-        // pls.push_back(playListData.substring(lastIdx));
-      }
-
-      // for(auto& s : pls)
-      // {
-      //   Serial.println(s);
-      // }
-      return "";
-    }
-
-    
 } //MP3Control

@@ -10,12 +10,6 @@ typedef unsigned long ulong;
 
 namespace MP3Control
 {
-  struct PlaylistInfo
-  {
-    std::map<int, String> playLists;
-    std::map<int, String> songLists;
-  };
-
   class MP3Player
   {
     public:
@@ -47,13 +41,13 @@ namespace MP3Control
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
 
-      void responseHandler();
       void sendBT201Command(const char* cmd);
       void sendBT201CommandStr(String cmd, bool sendEOL=true);
       String queryBT201(const char* cmd);
       String queryBT201(String cmd, bool sendEOL=true);
 
-      //Query
+      //Display 
+      void setPlaylists();
 
 
       //Song Operations
@@ -82,22 +76,15 @@ namespace MP3Control
 
       //Accessors
       int getVolume() { return mCurrentVolume; }
-      String parsePlaylist(String playListData);
-
     private:
-      String retrievePlaylistFile(int timeout=DEFAULT_TIMEOUT);
       String getResponse(int timeout=DEFAULT_TIMEOUT);
-      // String parsePlaylist(String playListData);
       void clearSerialBuffer();
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
 
-      PlaylistInfo mPlaylistInfo;
       int mCurrentVolume = -1;
-      String mFileContent;
-      bool mIsFileReady = false;
-
+      
       SemaphoreHandle_t serialMutex = NULL;
   };
 } //MP3Control
