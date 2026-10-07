@@ -5,21 +5,15 @@
 #define MP3_RX D7
 #define MP3_TX D6
 
+#define DISPLAY_ONLY
 
 
 const char* PLAYLIST_FILE = "/playlists.json";
-unique_psram_ptr<MP3Control::MP3Player> ptrPlayer = nullptr;
 shared_psram_ptr<DisplayManager> ptrDisplay = nullptr;
-// TaskHandle_t  task1;
+#ifndef DISPLAY_ONLY
+unique_psram_ptr<MP3Control::MP3Player> ptrPlayer = nullptr;
+#endif
 
-// void taskHandler(void * pvParameters) {
-//   for(;;) {
-//     if(ptrPlayer) {
-//       ptrPlayer->responseHandler();
-//     }
-//     vTaskDelay(750 / portTICK_PERIOD_MS);
-//   }
-// }
 
 void setup() {
 
@@ -32,13 +26,20 @@ void setup() {
     Serial.println("PSRAM not available or failed to initialize!");
     return;
   }
+
+  #ifdef DISPLAY_ONLY
+    Serial.println("DISPLAY_ONLY");
+  #endif
   
+  #ifndef DISPLAY_ONLY
   try {
     ptrPlayer = make_unique_psram<MP3Control::MP3Player>(MP3_RX, MP3_TX);
   } catch (std::bad_alloc e) {
     Serial.println("Could not make Mp3Player");
     return;
   }
+  #endif
+
   try {
     ptrDisplay = make_shared_psram<DisplayManager>(PLAYLIST_FILE);
   } catch (std::bad_alloc e) {
@@ -46,14 +47,18 @@ void setup() {
     return;
   }
   
-  Serial.println("All good");
-  Serial.printf("ptr Player: %d \n", ptrPlayer.get());
+  Serial.println("All good");  
   Serial.printf("ptr Display: %d \n", ptrDisplay.get());
 
-  // if(ptrDisplay) {}
+#ifndef DISPLAY_ONLY
+  Serial.printf("ptr Player: %d \n", ptrPlayer.get());
+#endif
+ 
+#ifndef DISPLAY_ONLY
+  if(ptrPlayer)
+    ptrPlayer->initBT201();
+#endif
 
-  // if(ptrPlayer)
-  //   ptrPlayer->initBT201();
   Serial.println("All good 1 Done");
 }
 

@@ -1,5 +1,18 @@
+#pragma once
+
 #include <stdexcept>
 #include <map>
+#include <vector>
+
+#include <Arduino.h>
+#include <U8g2lib.h>
+
+#ifdef U8X8_HAVE_HW_SPI
+#include <SPI.h>
+#endif
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
 
 #include <ArduinoJson.h>
 #include "LittleFS.h"
@@ -31,13 +44,17 @@ class DisplayManager
     static constexpr char* SONG_INDEX     = "idx";
 
     DisplayManager(const char* filePath);
-    ~DisplayManager(){};
+    ~DisplayManager()=default;
+
+    void showPlaylists(const std::vector<String>& items);
 
   private:
     void parseJSON(JsonDocument& doc);
+    void printToScreen();
+
+
     std::map<int, PlayList> mPlaylistsMap;
-
-
+    U8G2_SH1106_128X64_NONAME_F_HW_I2C mU8g2;
 
 
 };
