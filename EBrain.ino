@@ -1,3 +1,5 @@
+#include <map>
+
 #include "MP3Player.h"
 #include "SmartPointer.h"
 #include "DisplayManager.h"
@@ -7,6 +9,12 @@
 
 #define DISPLAY_ONLY
 
+std::map<int, PlayList> PLAYLISTS = {{1, PlayList(1, "Title 1", "")},
+                              {2, PlayList(1, "Title 2", "")},
+                              {3, PlayList(1, "Title 3", "")},
+                              {4, PlayList(1, "Title 4", "")},
+                              {5, PlayList(1, "Title 5", "")},
+                              {6, PlayList(1, "Title 6", "")}};
 
 const char* PLAYLIST_FILE = "/playlists.json";
 shared_psram_ptr<DisplayManager> ptrDisplay = nullptr;
@@ -58,6 +66,12 @@ void setup() {
   if(ptrPlayer)
     ptrPlayer->initBT201();
 #endif
+
+  if(ptrDisplay) {
+    PLAYLISTS[1].selected = true;
+    ptrDisplay->setPlaylists(PLAYLISTS);
+    ptrDisplay->showPlaylists();
+  }
 
   Serial.println("All good 1 Done");
 }

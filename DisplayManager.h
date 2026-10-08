@@ -1,5 +1,10 @@
 #pragma once
 
+
+#include <tuple>
+#include "class/hid/hid.h"
+#include "WString.h"
+
 #include <stdexcept>
 #include <map>
 #include <vector>
@@ -17,18 +22,28 @@
 #include <ArduinoJson.h>
 #include "LittleFS.h"
 
+enum DisplayMode {
+      INITIALIZING  = 0,
+      PLAYLIST      = 1,
+      SONGLIST      = 2,
+      PLAYING       = 3,
+      RECORDING     = 4
+    };
+
 struct SongList
 {
   int index;
   String title;
   String fileName;
+  bool selected = false;
 };
 struct PlayList
 {
   int index;
   String title;
-  String dirName;
+  String dirName;  
   std::map<int, SongList> songlist;
+  bool selected = false;
 };
 
 class DisplayManager
@@ -43,18 +58,23 @@ class DisplayManager
     static constexpr char* SONG_LIST      = "songs";
     static constexpr char* SONG_INDEX     = "idx";
 
+    static constexpr char* PLAYLISTS_HEADER  = "Playlists:";
+
+    DisplayManager();
     DisplayManager(const char* filePath);
     ~DisplayManager()=default;
 
-    void showPlaylists(const std::vector<String>& items);
-
+    void showPlaylists();
+    void setPlaylists(std::map<int, PlayList> pl);
+    
   private:
     void parseJSON(JsonDocument& doc);
     void printToScreen();
 
-
     std::map<int, PlayList> mPlaylistsMap;
     U8G2_SH1106_128X64_NONAME_F_HW_I2C mU8g2;
+    DisplayMode mDisplayMode = DisplayMode::INITIALIZING;
 
+    std::tuple<int, int> mCurrentPlaylists = std::make_tuple(0,0);
 
 };

@@ -1,8 +1,12 @@
 #include <stdexcept>
 #include "DisplayManager.h"
 
-DisplayManager::DisplayManager(const char* filePath) : mU8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE) {
-  mU8g2.begin(); //u8g2_font_PixelTheatre_tr
+DisplayManager::DisplayManager() : mU8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE) {
+  mU8g2.begin();
+  mDisplayMode = DisplayMode::INITIALIZING;
+};
+
+DisplayManager::DisplayManager(const char* filePath) : DisplayManager() {
   if(!LittleFS.begin()){
     throw std::runtime_error("LittleFS not initialized");
   }
@@ -16,10 +20,13 @@ DisplayManager::DisplayManager(const char* filePath) : mU8g2(U8G2_R0, /* reset=*
   playlistsFile.close();
   if (error) {
     throw std::runtime_error(error.c_str());
-  }
-  
+  }  
   parseJSON(doc);
-  printToScreen();
+}
+
+void DisplayManager::setPlaylists(std::map<int, PlayList> pl)
+{
+  mPlaylistsMap = std::move(pl);
 }
 
 void DisplayManager::parseJSON(JsonDocument& doc)
@@ -43,7 +50,6 @@ void DisplayManager::parseJSON(JsonDocument& doc)
       sl[idx] = SongList(idx, st, sf);
     }
     mPlaylistsMap[plId] = PlayList(plId, plTitle, plDir, sl);
-    Serial.println(plTitle);
   }
 }
 
@@ -56,11 +62,12 @@ void DisplayManager::printToScreen()
   mU8g2.sendBuffer();					// transfer internal memory to the display
 }
 
-void DisplayManager::showPlaylists(const std::vector<String>& items)
+void DisplayManager::showPlaylists()
 {
   static constexpr int SEPARATOR_HEIGHT = 3;
   static constexpr int PADDING          = 2;   // gap around the separator
 
+  mU8g2.clearDisplay();
   mU8g2.clearBuffer();
   mU8g2.setFont(u8g2_font_6x10_tf);
   mU8g2.setFontPosTop();                       // y now refers to the top of the text
@@ -71,7 +78,7 @@ void DisplayManager::showPlaylists(const std::vector<String>& items)
 
   // Title
   int y = 0;
-  mU8g2.drawStr(0, y, "Playlists");
+  mU8g2.drawStr(0, y, PLAYLISTS_HEADER);
   y += lineHeight + PADDING;
 
   // 3 pixel separator
@@ -79,10 +86,11 @@ void DisplayManager::showPlaylists(const std::vector<String>& items)
   y += SEPARATOR_HEIGHT + PADDING;
 
   // Vertical list
-  for (const String& item : items)
+  for (const auto& [key, value] : mPlaylistsMap)
   {
-    if (y + lineHeight > height) break;        // stop when the next line would be clipped
-    mU8g2.drawStr(0, y, item.c_str());
+    if (y + lineHeight > height) break;        
+    //mU8g2.drawStr(0, y, item.c_str());
+    mU8g2.drawButtonUTF8(0, y, value.selected ? U8G2_BTN_INV : 0, 0, 2, 2, value.title.c_str());
     y += lineHeight;
   }
 
