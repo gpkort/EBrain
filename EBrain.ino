@@ -1,4 +1,4 @@
-#include <map>
+#include <vector>
 
 #include "MP3Player.h"
 #include "SmartPointer.h"
@@ -7,14 +7,25 @@
 #define MP3_RX D7
 #define MP3_TX D6
 
-#define DISPLAY_ONLY
+#define DISPLAY_ONLY true
+#define TEST_DISPLAY true
 
-std::map<int, PlayList> PLAYLISTS = {{1, PlayList(1, "Title 1", "")},
-                              {2, PlayList(1, "Title 2", "")},
-                              {3, PlayList(1, "Title 3", "")},
-                              {4, PlayList(1, "Title 4", "")},
-                              {5, PlayList(1, "Title 5", "")},
-                              {6, PlayList(1, "Title 6", "")}};
+std::vector<ListItem> SONGVEC = {
+ListItem(-1, DisplayManager::BACK, ""),
+ListItem(-1, DisplayManager::ALL, ""),
+ListItem(-1, DisplayManager::SHUFFLE, ""),
+ListItem(1, "Song 1", "S1"),
+ListItem(2, "Song 2", "S2"),
+ListItem(3, "Song 3", "S3"),
+ListItem(4, "Song 4", "S4")};
+
+std::vector<ListItem> PLAYLISTS = {ListItem(1, "Title 1", "Dir1",{ListItem(-1, DisplayManager::BACK, "")}),
+                              ListItem(2, "Title 2", "Dir2",{ListItem(-1, DisplayManager::BACK, "")}),
+                              ListItem(3, "Title 3", "Dir3", SONGVEC),
+                              ListItem(4, "Title 4", "Dir4",{ListItem(-1, DisplayManager::BACK, "")}),
+                              ListItem(5, "Title 5", "Dir5",{ListItem(-1, DisplayManager::BACK, "")}),
+                              ListItem(6, "Title 6", "Dir6",{ListItem(-1, DisplayManager::BACK, "")}),
+                              ListItem(7, "Title 7", "Dir7",{ListItem(-1, DisplayManager::BACK, "")})};
 
 const char* PLAYLIST_FILE = "/playlists.json";
 shared_psram_ptr<DisplayManager> ptrDisplay = nullptr;
@@ -49,7 +60,11 @@ void setup() {
   #endif
 
   try {
+  #ifdef  TEST_DISPLAY
+    ptrDisplay = make_shared_psram<DisplayManager>();
+  #else
     ptrDisplay = make_shared_psram<DisplayManager>(PLAYLIST_FILE);
+  #endif
   } catch (std::bad_alloc e) {
     Serial.println("Could not make Display");
     return;
@@ -67,84 +82,35 @@ void setup() {
     ptrPlayer->initBT201();
 #endif
 
+ #ifdef  TEST_DISPLAY
   if(ptrDisplay) {
-    PLAYLISTS[1].selected = true;
     ptrDisplay->setPlaylists(PLAYLISTS);
-    ptrDisplay->showPlaylists();
   }
+  #endif
 
   Serial.println("All good 1 Done");
 }
 
 void loop() 
 {
-  
-  // if (BT201Serial.available() > 0) 
-  // {
-  //  if(readFile)
-  //   {      
-  //     String temp = "";
-  //     while (BT201Serial.available() > 0) 
-  //     {      
-  //       char c = BT201Serial.read();
-  //       if(c != ' ' && c != 'O' && c != 'K')
-  //       {
-  //         temp += c;
-  //         if(temp.length() == 2)
-  //         {
-  //           int intc = (int)strtol(temp.c_str(), NULL, 16);
-  //           char cc = (char)intc;
-  //           testValue += cc;
-
-  //           if(cc == '#')
-  //           {
-  //             Serial.println("found " + testValue);
-  //             readFile = false;
-  //             testValue = "";
-  //             return;
-  //           }
-  //           temp = "";            
-  //         }
-  //       }
-  //       delayMicroseconds(100);
-  //     }
-  //   }
-  //   else 
-  //   {
-  //     Serial.println(BT201Serial.readString());    
-  //   }
-  // }
-  /*
   if(Serial.available() > 0)
   {
     String command = Serial.readString();
-    command.trim();
+    command.toUpperCase();
     Serial.println("Command: " + command);
 
-    if(ptrPlayer != nullptr)
+    if(command == "S")
     {
-      // bool addEnd = true;
-      // readFile = false;
-      // if(command.startsWith("AT+AR"))
-      // {
-      //   ptrPlayer->sendBT201CommandStr(command, true);
-      // }
-      if(command == "i")
-      {
-        ptrPlayer->initBT201();
-      }
-      else if(command.startsWith("AT+"))
-      {
-        bool addend = command.endsWith("#");
-
-        if(addend)
-        {
-          command.replace("#", "");
-        }
-        ptrPlayer->queryBT201(command, !addend);
-      }
-      delay(2500);
+      ptrDisplay->scroll(DisplayManager::PageDirection::DOWN);
+    }
+    else if(command == "W")
+    {
+      ptrDisplay->scroll(DisplayManager::PageDirection::UP);
+    }
+    else if(command == "X")
+    {
+      ptrDisplay->select();
     }
   }
-  */
+  
 }

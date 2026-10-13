@@ -1,13 +1,11 @@
 #pragma once
 
-
-#include <tuple>
 #include "class/hid/hid.h"
 #include "WString.h"
 
 #include <stdexcept>
-#include <map>
 #include <vector>
+#include <optional>
 
 #include <Arduino.h>
 #include <U8g2lib.h>
@@ -21,6 +19,7 @@
 
 #include <ArduinoJson.h>
 #include "LittleFS.h"
+#include "Messages.h"
 
 enum DisplayMode {
       INITIALIZING  = 0,
@@ -30,20 +29,12 @@ enum DisplayMode {
       RECORDING     = 4
     };
 
-struct SongList
+struct ListItem
 {
-  int index;
-  String title;
-  String fileName;
-  bool selected = false;
-};
-struct PlayList
-{
-  int index;
-  String title;
-  String dirName;  
-  std::map<int, SongList> songlist;
-  bool selected = false;
+  int id = -1;
+  String title = "";
+  String pathName = "";
+  std::vector<ListItem> songs;
 };
 
 class DisplayManager
@@ -59,22 +50,40 @@ class DisplayManager
     static constexpr char* SONG_INDEX     = "idx";
 
     static constexpr char* PLAYLISTS_HEADER  = "Playlists:";
+    static constexpr char* SONGLIST_HEADER  = "Songs:";
+
+    static constexpr int SEPARATOR_HEIGHT = 3;
+    static constexpr int PADDING          = 2;   // gap around the separator
+
+    static constexpr char* BACK       = "BACK";
+    static constexpr char* ALL        = "ALL";
+    static constexpr char* SHUFFLE    = "SHUFFLE";
+    static constexpr int BACK_IDX     = 0;
+    static constexpr int ALL_IDX      = 1;
+    static constexpr int SHUFFLE_IDX  = 2;
+
+    enum PageDirection{UP=0, DOWN=1};
 
     DisplayManager();
     DisplayManager(const char* filePath);
     ~DisplayManager()=default;
-
-    void showPlaylists();
-    void setPlaylists(std::map<int, PlayList> pl);
     
+    void setPlaylists(std::vector<ListItem> pl, bool autoshow=true);
+    void scroll(PageDirection direction);
+    std::optional<SongPlay::PlayMessage> select();
+    void resetDisplay();
+        
   private:
     void parseJSON(JsonDocument& doc);
-    void printToScreen();
+     int setDisplayHeader(char* headerText, int seperatorHeight = SEPARATOR_HEIGHT, int padding = PADDING);
+    void updateScreenList(std::vector<ListItem> items, PageDirection direction, char* headerText);
 
-    std::map<int, PlayList> mPlaylistsMap;
+    std::vector<ListItem> mPlaylists;
+    std::vector<ListItem> mCurrentSonglist;
     U8G2_SH1106_128X64_NONAME_F_HW_I2C mU8g2;
     DisplayMode mDisplayMode = DisplayMode::INITIALIZING;
-
-    std::tuple<int, int> mCurrentPlaylists = std::make_tuple(0,0);
+    int mSelectedIdx = 0;
+    int mSelectedPlaylistIdx = -1;
+    
 
 };
