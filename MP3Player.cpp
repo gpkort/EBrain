@@ -1,3 +1,4 @@
+#include "WString.h"
 #include "MP3Player.h"
 
 namespace MP3Control
@@ -12,11 +13,13 @@ namespace MP3Control
 
     MP3Player::~MP3Player(){}
     
-    void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {      
+    void MP3Player::sendBT201CommandStr(String cmd, bool sendEOL) {   
+      cmd = String(BT201Commands::AT_COMMAND) + cmd;   
       if(sendEOL)
       {
         cmd += BT201Commands::ENDING;
       }
+      Serial.println("Sending " + cmd);
       BT201Serial.print(cmd.c_str());      
     }
 
@@ -41,11 +44,11 @@ namespace MP3Control
 
     bool MP3Player::setPlayerMode()
     {
-
       queryBT201(BT201Commands::USE_SD_CARD);
       delayMicroseconds(200);
       auto res = queryBT201(BT201Commands::QUERY_MODE);
-      res.trim();      
+      res.trim();
+      Serial.println("Res: " + res);   
       return res.startsWith(BT201Responses::SD_CARD_MUSIC_MODE);
     }
 
@@ -84,8 +87,28 @@ namespace MP3Control
     }
         
     //Song Operations
-    void MP3Player::play_pause()
-    {
+    void MP3Player::playAction(SongPlay::PlayMessage message) {
+      switch (message.action) {
+        case SongPlay::Action::PLAY_ALL:
+          Serial.println("Play All: " + message.path);
+          // TODO: implement
+          return;
+        case SongPlay::Action::PLAY_SINGLE:
+          Serial.println("Play Song: " + message.path);
+          playSong(message.path);
+          return;
+        case SongPlay::Action::SHUFFLE:
+          Serial.println("Shuffle: " + message.path);
+          // TODO: implement
+          return;
+        case SongPlay::Action::UNSET:
+        default:
+          Serial.print("No Action");     
+          return;
+      }
+    }
+
+    void MP3Player::play_pause()  {
       sendBT201Command(BT201Commands::PP_SONG);
     }    
 
@@ -94,14 +117,16 @@ namespace MP3Control
       sendBT201Command(BT201Commands::PREVIOUS_SONG);
     }
 
-    void MP3Player::nextSong()
-    {
+    void MP3Player::nextSong()  {
       sendBT201Command(BT201Commands::NEXT_SONG);
     }
 
-    void MP3Player::playSong()
+    void MP3Player::playSong(String file)
     {
-      //
+      Serial.println(BT201Commands::PLAY_SPECIFIC_SONG + file);
+      auto res = queryBT201(BT201Commands::PLAY_SPECIFIC_SONG + file);//, false);
+      
+      Serial.println("Song res= " + res);
     }
 
     void MP3Player::volumeUp()
@@ -125,54 +150,7 @@ namespace MP3Control
         mCurrentVolume = level;
       }
     }
-    
-    std::vector<String> MP3Player::getPlaylist(String cmd)
-    {
-      String pl = "";
-      std::vector<String> songs;
-      // sendBT201Command(cmd.c_str()); 
-      // unsigned long start = millis();
-      // String message = "";
-      // // while(true)
-      // // {   
-      //   if (BT201Serial.available() > 0) 
-      //   {
-      //     Serial.println("\n--- Data Received From BT201 ---");
-          
-      //     // Read the incoming bytes until the module finishes streaming
-      //     while (BT201Serial.available() > 0) 
-      //     {
-      //       char c = BT201Serial.read();
-      //       Serial.println(c); 
-      //       message += String(c);
             
-      //       // Tiny delay to allow serial buffer to fill up if data is streaming fast
-      //       delayMicroseconds(100);
-      //     }
-      //   }
-      //   Serial.println("\n--- End of Data Stream ---");
-    
-      // //   delay(750);
-      // //   unsigned long passed = millis() - start;
-      // //   if(passed % 500 == 0) Serial.println(passed);
-      // //   if(passed > 10000) break;
-      // // }
-      // Serial.println(message);
-      return songs;      
-    }
-
-    std::vector<String> MP3Player::getSongList()
-    {
-      // std::vector<String> playlist;
-      // sendBT201Command(comm.c_str());
-      // if (BT201Serial.available() > 0)
-      // {
-      //   auto message = BT201Serial.readString();
-      //   Serial.println(message);  
-      // }
-      // return playlist;
-    }
-        
     String MP3Player::getResponse(int timeout)
     {
       String serialString = "";

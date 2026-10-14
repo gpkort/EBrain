@@ -14,10 +14,11 @@ namespace MP3Control
       static constexpr char* USE_SD_CARD   = "CM03";
 
       // MUSIC
-      static constexpr char* PP_SONG        = "CB";
-      static constexpr char* NEXT_SONG      = "CC";
-      static constexpr char* PREVIOUS_SONG  = "CE";
-      static constexpr char* STOP_SONG      = "AA00";
+      static constexpr char* PP_SONG                 = "CB";
+      static constexpr char* NEXT_SONG               = "CC";
+      static constexpr char* PREVIOUS_SONG           = "CE";
+      static constexpr char* STOP_SONG               = "AA00";
+      static constexpr char* PLAY_SPECIFIC_SONG      = "AJ";
 
       //VOLUME
       static constexpr char* RAISE_VOLUME   = "CB";

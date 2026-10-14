@@ -1,4 +1,4 @@
-
+#pragma once
 
 namespace SongPlay
 {
@@ -11,6 +11,6 @@ namespace SongPlay
 
   struct PlayMessage {
     Action action = Action::UNSET;
-    String path = "";
+    String path = "";    
   };
 }//SongPlay

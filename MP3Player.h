@@ -4,6 +4,7 @@
 #include <vector>
 #include <HardwareSerial.h>
 #include "Constants.h"
+#include "Messages.h"
 
 #define BT201Serial Serial1
 typedef unsigned long ulong;
@@ -36,7 +37,7 @@ namespace MP3Control
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30;
 
-      static constexpr char PLAYLIST_SEPERATOR = '|';
+      static inline const String MP3_SUFFIX = ".mp3";
       
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -46,16 +47,14 @@ namespace MP3Control
       String queryBT201(const char* cmd);
       String queryBT201(String cmd, bool sendEOL=true);
 
-      //Display 
-      void setPlaylists();
-
-
+      
       //Song Operations
+      void playAction(SongPlay::PlayMessage message);
       void play_pause();
       void initBT201();
       void previousSong();
       void nextSong();
-      void playSong();
+      void playSong(String file);
 
       bool setPlayerMode();
       bool stopPlayer();
@@ -69,11 +68,6 @@ namespace MP3Control
       void volumeDown();
       void setVolume(int level);
       
-
-      //Display Operations
-      std::vector<String> getPlaylist(String cmd);
-      std::vector<String> getSongList();
-
       //Accessors
       int getVolume() { return mCurrentVolume; }
     private:

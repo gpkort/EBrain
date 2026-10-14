@@ -51,12 +51,10 @@ void DisplayManager::scroll(PageDirection direction){
   }
 }
 
-std::optional<SongPlay::PlayMessage> DisplayManager::select()
-{  
+std::optional<SongPlay::PlayMessage> DisplayManager::select() {  
   if(mSelectedIdx == -1) { return std::nullopt; }
 
   if(mDisplayMode == DisplayMode::PLAYLIST) {
-    Serial.println("FIRING PL");
     mSelectedPlaylistIdx = mSelectedIdx;
     mCurrentSonglist = mPlaylists[mSelectedPlaylistIdx].songs;
     mDisplayMode = DisplayMode::SONGLIST;
@@ -64,7 +62,7 @@ std::optional<SongPlay::PlayMessage> DisplayManager::select()
     updateScreenList(mCurrentSonglist, PageDirection::DOWN, SONGLIST_HEADER);
   }
   else if(mDisplayMode == DisplayMode::SONGLIST) {
-    Serial.println("FIRING SL");
+    String dirPath = "/" + mPlaylists[mSelectedPlaylistIdx].pathName;
     switch (mSelectedIdx) {
       case BACK_IDX:
         resetDisplay();
@@ -74,13 +72,13 @@ std::optional<SongPlay::PlayMessage> DisplayManager::select()
         break;
       case ALL_IDX:
         resetDisplay();
-        return SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, mPlaylists[mSelectedPlaylistIdx].pathName);
+        return SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, dirPath);
       case SHUFFLE_IDX:
         resetDisplay();
-        return SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, mPlaylists[mSelectedPlaylistIdx].pathName);
-      default:
+        return SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, dirPath);
+      default:          
+        String sp = dirPath + "/" + mCurrentSonglist[mSelectedIdx].pathName;
         resetDisplay();
-        String sp = "/" + mPlaylists[mSelectedPlaylistIdx].pathName + "/" + mCurrentSonglist[mCurrentSonglist];
         return SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, sp);
     }
   }
@@ -114,8 +112,9 @@ void DisplayManager::parseJSON(JsonDocument& doc)
       int idx = song[SONG_INDEX];
       const char* st = song[TITLE];
       const char* sf = song[SONG_FILE];
-      li.songs.push_back(ListItem(idx, st, sf));
+      li.songs.push_back(ListItem(idx, st, sf));      
     }
+    // for(auto& l:li) { Serial.println(l.pathName);}
     mPlaylists.push_back(li);
   }
 }
@@ -131,7 +130,6 @@ void DisplayManager::updateScreenList(std::vector<ListItem> items, PageDirection
   else {
     if(mSelectedIdx == items.size() - 1) { return; }
     mSelectedIdx++;
-    Serial.printf("Selected: %d\n",mSelectedIdx);
   }
     
   int firstidx = mSelectedIdx == 0 ? 0 : mSelectedIdx - 1;
