@@ -67,25 +67,28 @@ void loop()
   if(Serial.available() > 0)
   {
     String command = Serial.readString();
-    command.toUpperCase();
+    // if(!command.startsWith(":"))
+    //   command.toUpperCase();
+
     Serial.println("Command: " + command);
     if(command == "S") {
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, "/01_Welcome_Interstate_Managers"));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, 17, 31));
     }
     else if(command == "A") {
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, "/01_Welcome_Interstate_Managers"));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, 17));
     }
     else if(command == "PS") {
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, "/02_The_Flyer/02_Nobodys_Angel"));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, 18));
     }
     else if(command == "P") {
       ptrPlayer->play_pause();
     }
     else if(command.startsWith(":")) {
       Serial.println(ptrPlayer->queryBT201(command.substring(1).c_str()));
+      
     }
     else {
-      ptrPlayer->playSong(command);
+      ptrPlayer->playSong(command.toInt());
     }
     // if(command == "S")
     // {

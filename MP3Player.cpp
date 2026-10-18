@@ -1,3 +1,4 @@
+#include <exception>
 #include "WString.h"
 #include "MP3Player.h"
 
@@ -48,8 +49,12 @@ namespace MP3Control
       delayMicroseconds(200);
       auto res = queryBT201(BT201Commands::QUERY_MODE);
       res.trim();
-      Serial.println("Res: " + res);   
       return res.startsWith(BT201Responses::SD_CARD_MUSIC_MODE);
+    }
+
+    void MP3Player::setSongPlayingMode()
+    {
+      auto res = queryBT201(BT201Commands::PICK_SONG_MODE);
     }
 
     bool MP3Player::stopPlayer()
@@ -61,44 +66,33 @@ namespace MP3Control
     }
 
     void MP3Player::initBT201()
-    {
-      unsigned long start = millis();
-      
-      if(mMode != PlayerMode::MUSIC)
-      {        
-        if(setPlayerMode())
-        {
-          mMode == PlayerMode::MUSIC;          
-        }
-        else {
-          Serial.println("Can't set mode");
-          return;
-        }
-        if(stopPlayer())
-        {
-          Serial.println("Setting state");
-          mMusicState = MusicState::STOPPED;
-        }
-        else {
-          Serial.println("Can't set state");
-          return;
-        }
-      }              
+    {  
+      delay(1000);
+      auto res = queryBT201(BT201Commands::QUERY_MODE);
+      Serial.println(res);    
+      // setPlayerMode();     
+      // mMode == PlayerMode::MUSIC;
+      // delay(200);
+      // play_pause();
+      // mMusicState = MusicState::STOPPED;
+      // delay(200);
+      // setSongPlayingMode();  
+      // Serial.println("SETUP Complete");
+             
     }
         
     //Song Operations
     void MP3Player::playAction(SongPlay::PlayMessage message) {
       switch (message.action) {
         case SongPlay::Action::PLAY_ALL:
-          Serial.println("Play All: " + message.path);
+          Serial.println("Play All");
           // TODO: implement
           return;
         case SongPlay::Action::PLAY_SINGLE:
-          Serial.println("Play Song: " + message.path);
-          playSong(message.path);
+          playSong(message.startIdx);
           return;
         case SongPlay::Action::SHUFFLE:
-          Serial.println("Shuffle: " + message.path);
+          Serial.println("Shuffle: ");
           // TODO: implement
           return;
         case SongPlay::Action::UNSET:
@@ -121,12 +115,10 @@ namespace MP3Control
       sendBT201Command(BT201Commands::NEXT_SONG);
     }
 
-    void MP3Player::playSong(String file)
+    void MP3Player::playSong(int index)
     {
-      Serial.println(BT201Commands::PLAY_SPECIFIC_SONG + file);
-      auto res = queryBT201(BT201Commands::PLAY_SPECIFIC_SONG + file);//, false);
-      
-      Serial.println("Song res= " + res);
+      queryBT201(BT201Commands::PLAY_SPECIFIC_INDEX + String(index));
+      queryBT201()
     }
 
     void MP3Player::volumeUp()
@@ -141,8 +133,7 @@ namespace MP3Control
       --mCurrentVolume;
     }
     
-    void MP3Player::setVolume(int level)
-    {
+    void MP3Player::setVolume(int level) {
       if(level >= VOLUME_MIN and level <= VOLUME_MAX)
       {
         String comm = String(BT201Commands::SET_VOLUME) + String(level);
@@ -151,13 +142,12 @@ namespace MP3Control
       }
     }
             
-    String MP3Player::getResponse(int timeout)
-    {
+    String MP3Player::getResponse(int timeout) {
       String serialString = "";
-      int start = millis();
-      if (xSemaphoreTake(serialMutex, 2000)) 
+      
+      if (xSemaphoreTake(serialMutex, 1000)) 
       {
-        int try_num = 0;
+        int start = millis();
         while((millis() - start) < timeout)
         {
           if(BT201Serial.available() > 0)

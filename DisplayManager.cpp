@@ -62,27 +62,24 @@ std::optional<SongPlay::PlayMessage> DisplayManager::select() {
     updateScreenList(mCurrentSonglist, PageDirection::DOWN, SONGLIST_HEADER);
   }
   else if(mDisplayMode == DisplayMode::SONGLIST) {
-    String dirPath = "/" + mPlaylists[mSelectedPlaylistIdx].pathName;
+    int start = mCurrentSonglist[mSelectedIdx].absoluteIndex;
+    int end =mCurrentSonglist.back().absoluteIndex;
+    resetDisplay();
+
     switch (mSelectedIdx) {
-      case BACK_IDX:
-        resetDisplay();
+      case BACK_IDX:        
         mSelectedIdx = mSelectedPlaylistIdx - 1;
         mSelectedPlaylistIdx = -1;
         updateScreenList(mPlaylists, PageDirection::DOWN, PLAYLISTS_HEADER);
         break;
       case ALL_IDX:
-        resetDisplay();
-        return SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, dirPath);
+        return SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, start, end );
       case SHUFFLE_IDX:
-        resetDisplay();
-        return SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, dirPath);
+        return SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, start, end);
       default:          
-        String sp = dirPath + "/" + mCurrentSonglist[mSelectedIdx].pathName;
-        resetDisplay();
-        return SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, sp);
+        return SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, start);
     }
   }
-
   return std::nullopt;
 }
 
@@ -93,6 +90,7 @@ void DisplayManager::resetDisplay() {
 
 void DisplayManager::parseJSON(JsonDocument& doc)
 {
+  int tidx = 1;
   mPlaylists.clear();
   JsonArray playlists = doc[PLAYLIST];
 
@@ -100,10 +98,10 @@ void DisplayManager::parseJSON(JsonDocument& doc)
     const char* plTitle = pl[TITLE];
     const char* plDir = pl[PLAYLIST_DIR];
     int plId = pl[PLAYLIST_ID];
-    auto li = ListItem(plId, plTitle, plDir);   
-    li.songs = {ListItem(-1, BACK, ""),
-                ListItem(-1, ALL, ""),
-                ListItem(-1, SHUFFLE, "")
+    auto li = ListItem(plId, -1, plTitle, plDir);   
+    li.songs = {ListItem(-1, -1, BACK, ""),
+                ListItem(-1, -1, ALL, ""),
+                ListItem(-1, -1, SHUFFLE, "")
                 };
 
     JsonArray songs = pl[SONG_LIST];
@@ -112,7 +110,8 @@ void DisplayManager::parseJSON(JsonDocument& doc)
       int idx = song[SONG_INDEX];
       const char* st = song[TITLE];
       const char* sf = song[SONG_FILE];
-      li.songs.push_back(ListItem(idx, st, sf));      
+      li.songs.push_back(ListItem(idx, tidx, st, sf));
+      tidx++;    
     }
     // for(auto& l:li) { Serial.println(l.pathName);}
     mPlaylists.push_back(li);

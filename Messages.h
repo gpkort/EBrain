@@ -11,6 +11,7 @@ namespace SongPlay
 
   struct PlayMessage {
     Action action = Action::UNSET;
-    String path = "";    
+    int startIdx = -1;
+    int endIdx   = -1;   
   };
 }//SongPlay

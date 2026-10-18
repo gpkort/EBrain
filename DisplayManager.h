@@ -32,6 +32,7 @@ enum DisplayMode {
 struct ListItem
 {
   int id = -1;
+  int absoluteIndex = -1;
   String title = "";
   String pathName = "";
   std::vector<ListItem> songs;
@@ -75,7 +76,7 @@ class DisplayManager
         
   private:
     void parseJSON(JsonDocument& doc);
-     int setDisplayHeader(char* headerText, int seperatorHeight = SEPARATOR_HEIGHT, int padding = PADDING);
+    int setDisplayHeader(char* headerText, int seperatorHeight = SEPARATOR_HEIGHT, int padding = PADDING);
     void updateScreenList(std::vector<ListItem> items, PageDirection direction, char* headerText);
 
     std::vector<ListItem> mPlaylists;

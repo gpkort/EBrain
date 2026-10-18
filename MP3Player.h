@@ -32,12 +32,13 @@ namespace MP3Control
       static const SerialConfig BT201_CONFIGURATION = SERIAL_8N1;
       static const unsigned long BT201_BAUD_RATE=115200;
       static constexpr char* TIMEOUT_MSG = "TIMEOUT";
-      static constexpr int DEFAULT_TIMEOUT = 5000; 
+      static constexpr int DEFAULT_TIMEOUT = 3000; 
 
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30;
 
       static inline const String MP3_SUFFIX = ".mp3";
+      static inline const String GENERIC_SUFFIX = "???";
       
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -54,9 +55,9 @@ namespace MP3Control
       void initBT201();
       void previousSong();
       void nextSong();
-      void playSong(String file);
+      void playSong(int index);
 
-      bool setPlayerMode();
+      
       bool stopPlayer();
 
       //File Operations
@@ -73,6 +74,8 @@ namespace MP3Control
     private:
       String getResponse(int timeout=DEFAULT_TIMEOUT);
       void clearSerialBuffer();
+      bool setPlayerMode();
+      void setSongPlayingMode();
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
