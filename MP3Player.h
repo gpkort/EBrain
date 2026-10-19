@@ -55,14 +55,8 @@ namespace MP3Control
       void initBT201();
       void previousSong();
       void nextSong();
-      void playSong(int index);
-
-      
+      void playSong(int index);            
       bool stopPlayer();
-
-      //File Operations
-      void readAllPlaylists();
-      void readPlaylist();
 
       //Volume
       void volumeUp();
@@ -72,17 +66,27 @@ namespace MP3Control
       //Accessors
       int getVolume() { return mCurrentVolume; }
     private:
+      static void taskWrapper(void* _o) {
+        MP3Player* self = static_cast<MP3Player*>(_o);
+        self->monitorPlaying();
+      }
+
       String getResponse(int timeout=DEFAULT_TIMEOUT);
       void clearSerialBuffer();
       bool setPlayerMode();
       void setSongPlayingMode();
+      void playSongs(std::vector<int>& songs);
+      void monitorPlaying();
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
+      std::map<int, bool> mSongMap;
 
       int mCurrentVolume = -1;
       
-      SemaphoreHandle_t serialMutex = NULL;
+      SemaphoreHandle_t mSerialMutex = NULL;
+      SemaphoreHandle_t mPlayingMutex = NULL;
+      TaskHandle_t mMonitorTask = NULL;
   };
 } //MP3Control
 

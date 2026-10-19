@@ -37,7 +37,6 @@ void setup() {
     return;
   }
 
-
   try {
     ptrPlayer = make_unique_psram<MP3Control::MP3Player>(MP3_RX, MP3_TX);
   } catch (std::bad_alloc e) {
@@ -72,12 +71,13 @@ void loop()
 
     Serial.println("Command: " + command);
     if(command == "S") {
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, 17, 31));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, 17, 22));
     }
     else if(command == "A") {
       ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, 17));
     }
     else if(command == "PS") {
+      Serial.println("*****PS");
       ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, 18));
     }
     else if(command == "P") {

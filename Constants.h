@@ -36,7 +36,7 @@ namespace MP3Control
       static constexpr char* QUERY_PLAYBACK_STATUS        = "MP";
       static constexpr char* QUERY_PLAYBACK_TOTAL_TIME    = "MT";
       static constexpr char* QUERY_PLAYBACK_PLAYING_TIME  = "MK";
-
+      
       // File Read
       static constexpr char* READ_FILE                 = "AR/USB_UPDA/read.txt";
       
@@ -49,7 +49,6 @@ namespace MP3Control
       inline static const String RESPONSE_FILE_NUM               = "M1";
       inline static const String RESPONSE_PLAYBACK_MODE          = "MC";
       inline static const String RESPONSE_PLAYBACK_DEVICE        = "MD";
-      inline static const String RESPONSE_PLAYBACK_STATUS        = "MP";
       inline static const String RESPONSE_PLAYBACK_TOTAL_TIME    = "MT";
       inline static const String RESPONSE_PLAYBACK_PLAYING_TIME  = "MK";
 

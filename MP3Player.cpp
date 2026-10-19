@@ -1,3 +1,4 @@
+#include <vector>
 #include <exception>
 #include "WString.h"
 #include "MP3Player.h"
@@ -8,8 +9,10 @@ namespace MP3Control
     {
       BT201Serial.setRxBufferSize(256);
       BT201Serial.begin(BT201_BAUD_RATE, BT201_CONFIGURATION, rx, tx);
-      serialMutex = xSemaphoreCreateBinary();
-      if(serialMutex != NULL) { xSemaphoreGive(serialMutex); }
+      mSerialMutex = xSemaphoreCreateBinary();
+      mPlayingMutex = xSemaphoreCreateBinary();
+      if(mSerialMutex != NULL) { xSemaphoreGive(mSerialMutex); } //
+      if(mPlayingMutex != NULL) { xSemaphoreGive(mPlayingMutex); }
     }
 
     MP3Player::~MP3Player(){}
@@ -83,23 +86,29 @@ namespace MP3Control
         
     //Song Operations
     void MP3Player::playAction(SongPlay::PlayMessage message) {
-      switch (message.action) {
-        case SongPlay::Action::PLAY_ALL:
-          Serial.println("Play All");
-          // TODO: implement
-          return;
-        case SongPlay::Action::PLAY_SINGLE:
-          playSong(message.startIdx);
-          return;
-        case SongPlay::Action::SHUFFLE:
-          Serial.println("Shuffle: ");
-          // TODO: implement
-          return;
-        case SongPlay::Action::UNSET:
-        default:
-          Serial.print("No Action");     
-          return;
-      }
+        std::vector<int> songs;
+        switch (message.action) {
+          case SongPlay::Action::PLAY_ALL:
+            Serial.println("Play All");            
+            if(message.startIdx > -1 && message.endIdx > message.startIdx > -1)
+            {
+              for(int i=message.startIdx;i<=message.endIdx;i++){songs.push_back(i);}              
+              playSongs(songs);
+            }
+            return;
+          case SongPlay::Action::PLAY_SINGLE:
+            Serial.printf("Single: %d\n", message.startIdx); 
+            playSong(message.startIdx);
+            return;
+          case SongPlay::Action::SHUFFLE:
+            Serial.println("Shuffle: ");
+            // TODO: implement
+            return;
+          case SongPlay::Action::UNSET:
+          default:
+            Serial.println("No Action");     
+            return;
+          }
     }
 
     void MP3Player::play_pause()  {
@@ -115,20 +124,42 @@ namespace MP3Control
       sendBT201Command(BT201Commands::NEXT_SONG);
     }
 
-    void MP3Player::playSong(int index)
-    {
-      queryBT201(BT201Commands::PLAY_SPECIFIC_INDEX + String(index));
-      queryBT201()
+    void MP3Player::playSong(int index) {
+      Serial.printf("Play: %d\n", index); 
+      auto res = queryBT201(BT201Commands::PLAY_SPECIFIC_INDEX + String(index));
+      Serial.println("start playing: " + res);
+      delay(250);
+      res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+      Serial.println("is it playing: " + res);
     }
 
-    void MP3Player::volumeUp()
-    {
+    void MP3Player::playSongs(std::vector<int>& songs) {
+      if (xSemaphoreTake(mPlayingMutex, 500))
+      {
+        if(mMusicState != MusicState::PLAYING && mMonitorTask == NULL) {
+          mSongMap.clear();
+          for(int i=songs.front(); i<=songs.front();i++) {mSongMap[i]=false;}
+          auto one = mSongMap.begin();
+          one->second = true;
+          sendBT201CommandStr(String(BT201Commands::PLAY_SPECIFIC_INDEX) + String(one->first));
+          delay(250);
+          auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+          if(res == String(RESPONSE_MUSIC_STATE_PLAYING)) {
+            mMusicState == MusicState::PLAYING;
+            xSemaphoreGive(mPlayingMutex);
+            xTaskCreatePinnedToCore(MP3Player::taskWrapper, "Monitor", 
+                                    20000, NULL, 1, &mMonitorTask, 0);
+          }          
+        }        
+      }
+    }    
+
+    void MP3Player::volumeUp() {
       sendBT201Command(BT201Commands::RAISE_VOLUME);
       ++mCurrentVolume;
     }
 
-    void MP3Player::volumeDown()
-    {
+    void MP3Player::volumeDown() {
       sendBT201Command(BT201Commands::LOWER_VOLUME);
       --mCurrentVolume;
     }
@@ -145,7 +176,7 @@ namespace MP3Control
     String MP3Player::getResponse(int timeout) {
       String serialString = "";
       
-      if (xSemaphoreTake(serialMutex, 1000)) 
+      if (xSemaphoreTake(mSerialMutex, 1000)) 
       {
         int start = millis();
         while((millis() - start) < timeout)
@@ -158,15 +189,24 @@ namespace MP3Control
           delayMicroseconds(1000);
         }
         clearSerialBuffer();
-        xSemaphoreGive(serialMutex);        
+        xSemaphoreGive(mSerialMutex);        
       }
            
       return serialString;
     }
 
-    void MP3Player::clearSerialBuffer()
-    {
+    void MP3Player::monitorPlaying() {
+      for(;;) {
+        if(xSemaphoreTake(mPlayingMutex, 500)) {
+          auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+          vTaskDelay(pdMS_TO_TICKS(1000)); // Delay 1 second
+          xSemaphoreGive(mPlayingMutex);
+        }
+      }
+    }
+
+    void MP3Player::clearSerialBuffer() {
       while(BT201Serial.available()){BT201Serial.read();}
     }
 
-} //MP3Control
+} //MP3Contro
