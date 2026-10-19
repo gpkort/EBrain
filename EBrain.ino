@@ -78,7 +78,7 @@ void loop()
     }
     else if(command == "PS") {
       Serial.println("*****PS");
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, 18));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_SINGLE, 19));
     }
     else if(command == "P") {
       ptrPlayer->play_pause();

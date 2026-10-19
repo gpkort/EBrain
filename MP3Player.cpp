@@ -1,3 +1,4 @@
+#include "HardwareSerial.h"
 #include <vector>
 #include <exception>
 #include "WString.h"
@@ -34,20 +35,17 @@ namespace MP3Control
       BT201Serial.print(BT201Commands::ENDING);      
     }
 
-    String MP3Player::queryBT201(String cmd, bool sendEOL)
-    {
+    String MP3Player::queryBT201(String cmd, bool sendEOL) {
       sendBT201CommandStr(cmd, sendEOL);
       return getResponse();
     }
 
-    String MP3Player::queryBT201(const char* cmd)
-    {
+    String MP3Player::queryBT201(const char* cmd) {
       sendBT201Command(cmd);
       return getResponse();
     }
 
-    bool MP3Player::setPlayerMode()
-    {
+    bool MP3Player::setPlayerMode() {
       queryBT201(BT201Commands::USE_SD_CARD);
       delayMicroseconds(200);
       auto res = queryBT201(BT201Commands::QUERY_MODE);
@@ -55,13 +53,11 @@ namespace MP3Control
       return res.startsWith(BT201Responses::SD_CARD_MUSIC_MODE);
     }
 
-    void MP3Player::setSongPlayingMode()
-    {
+    void MP3Player::setSongPlayingMode() {
       auto res = queryBT201(BT201Commands::PICK_SONG_MODE);
     }
 
-    bool MP3Player::stopPlayer()
-    {
+    bool MP3Player::stopPlayer() {
       queryBT201(BT201Commands::STOP_SONG);
       delay(200);
       auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
@@ -98,7 +94,8 @@ namespace MP3Control
             return;
           case SongPlay::Action::PLAY_SINGLE:
             Serial.printf("Single: %d\n", message.startIdx); 
-            playSong(message.startIdx);
+            songs = {message.startIdx};
+            playSongs(songs);
             return;
           case SongPlay::Action::SHUFFLE:
             Serial.println("Shuffle: ");
@@ -129,30 +126,34 @@ namespace MP3Control
       auto res = queryBT201(BT201Commands::PLAY_SPECIFIC_INDEX + String(index));
       Serial.println("start playing: " + res);
       delay(250);
-      res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+      res = queryBT201(BT201Commands::QUERY_FILE_NUM);
       Serial.println("is it playing: " + res);
     }
 
     void MP3Player::playSongs(std::vector<int>& songs) {
-      if (xSemaphoreTake(mPlayingMutex, 500))
+      if (xSemaphoreTake(this->mPlayingMutex, 500))
       {
         if(mMusicState != MusicState::PLAYING && mMonitorTask == NULL) {
           mSongMap.clear();
           for(int i=songs.front(); i<=songs.front();i++) {mSongMap[i]=false;}
           auto one = mSongMap.begin();
           one->second = true;
-          sendBT201CommandStr(String(BT201Commands::PLAY_SPECIFIC_INDEX) + String(one->first));
-          delay(250);
-          auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
-          if(res == String(RESPONSE_MUSIC_STATE_PLAYING)) {
+          auto res = queryBT201(String(BT201Commands::PLAY_SPECIFIC_INDEX) + String(one->first));          
+          res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+          
+          if(res.startsWith(BT201Responses::RESPONSE_MUSIC_STATE_PLAYING)) {
+            Serial.println("Start listening");
+            // delay(1000);          
             mMusicState == MusicState::PLAYING;
             xSemaphoreGive(mPlayingMutex);
-            xTaskCreatePinnedToCore(MP3Player::taskWrapper, "Monitor", 
-                                    20000, NULL, 1, &mMonitorTask, 0);
-          }          
-        }        
+            xTaskCreatePinnedToCore(MP3Player::taskWrapper, "Monitor", 10000, NULL, 
+                                    1, &mMonitorTask, 0);
+            return;
+          }
+        }
+        xSemaphoreGive(mPlayingMutex);
       }
-    }    
+    }
 
     void MP3Player::volumeUp() {
       sendBT201Command(BT201Commands::RAISE_VOLUME);
@@ -195,13 +196,54 @@ namespace MP3Control
       return serialString;
     }
 
+
+
+    void taskWrapper(void* _o) {
+      Serial.println("Called");
+      MP3Player* self = static_cast<MP3Player*>(_o);
+        for(;;) {
+          auto sem = self->getPlayingMutex();
+          if(xSemaphoreTake(sem, 500)) {
+          }
+          vTaskDelay(pdMS_TO_TICKS(500));
+      }
+    }
+
     void MP3Player::monitorPlaying() {
-      for(;;) {
+      for(;;) {        
         if(xSemaphoreTake(mPlayingMutex, 500)) {
-          auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
-          vTaskDelay(pdMS_TO_TICKS(1000)); // Delay 1 second
-          xSemaphoreGive(mPlayingMutex);
+        //   auto res = queryBT201(BT201Commands::QUERY_PLAYBACK_STATUS);
+        //   if(res == String(BT201Responses::RESPONSE_MUSIC_STATE_PLAYING)) {
+        //     PlayStatus::SongStatus status;
+        //     //song index
+        //     res = queryBT201(BT201Commands::QUERY_FILE_NUM);
+        //     if(res.startsWith(BT201Responses::RESPONSE_FILE_NUM)) {
+        //       status.index = (int) strtol(res.substring(3).c_str(), NULL, 16);
+        //     }
+
+        //     //total time
+        //     res = queryBT201(BT201Commands::QUERY_PLAYBACK_TOTAL_TIME);
+        //     if(res.startsWith(BT201Responses::RESPONSE_PLAYBACK_TOTAL_TIME)) {
+        //       status.totalTime = (int) strtol(res.substring(3).c_str(), NULL, 16);
+        //     }
+
+        //     //total time
+        //     res = queryBT201(BT201Commands::QUERY_PLAYBACK_PLAYING_TIME);
+        //     if(res.startsWith(BT201Responses::RESPONSE_PLAYBACK_PLAYING_TIME)) {
+        //       status.totalTime = (int) strtol(res.substring(3).c_str(), NULL, 16);
+        //     }
+        //     Serial.println(status.toString());            
+        //   }
+          // else if(res == String(BT201Responses::RESPONSE_MUSIC_STATE_STOPPED)) {
+          //   Serial.println("The song list is over");
+          //   xSemaphoreGive(mPlayingMutex);
+          //   vTaskDelete(mMonitorTask);
+          //   mMonitorTask = NULL;
+          // }
+          // vTaskDelay(pdMS_TO_TICKS(500)); // Delay 1 second
+          // xSemaphoreGive(mPlayingMutex);
         }
+        vTaskDelay(pdMS_TO_TICKS(500));
       }
     }
 

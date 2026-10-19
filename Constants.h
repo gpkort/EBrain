@@ -45,6 +45,7 @@ namespace MP3Control
   class BT201Responses
   {
     public:
+      inline static const String OK                              = "OK";
       inline static const String SD_CARD_MUSIC_MODE              = "QM+03";
       inline static const String RESPONSE_FILE_NUM               = "M1";
       inline static const String RESPONSE_PLAYBACK_MODE          = "MC";

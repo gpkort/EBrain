@@ -15,3 +15,19 @@ namespace SongPlay
     int endIdx   = -1;   
   };
 }//SongPlay
+
+namespace PlayStatus
+{
+  struct SongStatus {
+    int index = -1;
+    int totalTime = -1;
+    int playingTime = -1;
+    
+    String toString() {
+      String ret = "{status:{\"index\": " + String(index) + ", ";
+      ret += "\"totalTime\": " + String(totalTime) + ", ";
+      ret += "\"playingTime\": " + String(playingTime) + ", ";
+      ret += "\"volume\": " + String(playingTime) + ", ";
+    }
+  };
+} //PlayStatus
