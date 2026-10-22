@@ -27,7 +27,7 @@ namespace PlayStatus
       String ret = "{status:{\"index\": " + String(index) + ", ";
       ret += "\"totalTime\": " + String(totalTime) + ", ";
       ret += "\"playingTime\": " + String(playingTime) + ", ";
-      ret += "\"volume\": " + String(playingTime) + ", ";
+      return ret;
     }
   };
 } //PlayStatus

@@ -29,17 +29,28 @@ namespace MP3Control
         STOPPED = 3
       };
 
+      enum PlayingAction {
+        START        = 0,
+        CONTINUE     = 1,
+        NEXT         = 2,
+        PREVIOUS     = 3,
+        TOGGLE_PLAY  = 4,
+        STOP         = 5,
+        NO_ACTION    = 99
+      };
+
             
       static const SerialConfig BT201_CONFIGURATION = SERIAL_8N1;
       static const unsigned long BT201_BAUD_RATE=115200;
       static constexpr char* TIMEOUT_MSG = "TIMEOUT";
-      static constexpr int DEFAULT_TIMEOUT = 1000; 
+      static constexpr int DEFAULT_TIMEOUT = 2000; 
 
       static constexpr int VOLUME_MIN = 0; 
       static constexpr int VOLUME_MAX = 30;
 
       static inline const String MP3_SUFFIX = ".mp3";
       static inline const String GENERIC_SUFFIX = "???";
+      static void taskWrapper(void* _o);
       
       MP3Player(int8_t rx, int8_t tx);
       ~MP3Player();
@@ -56,7 +67,6 @@ namespace MP3Control
       void initBT201();
       void previousSong();
       void nextSong();
-      void playSong(int index);            
       bool stopPlayer();
 
       //Volume
@@ -67,28 +77,28 @@ namespace MP3Control
       //Accessors
       int getVolume() { return mCurrentVolume; }
       void monitorPlaying();
+      PlayingAction getPlayingAction();
 
-      SemaphoreHandle_t getPlayingMutex() {return mPlayingMutex;}
     private:
-      
-      static void taskWrapper(void* _o);
-      static SemaphoreHandle_t mPlayingMutex = NULL;
-
       String getResponse(int timeout=DEFAULT_TIMEOUT);
       void clearSerialBuffer();
       bool setPlayerMode();
-      void setSongPlayingMode();
-      void playSongs(std::vector<int>& songs);
-      
+      void setMusicState(MusicState state);
+      bool playNextSong();
+      void setPlayingAction(PlayingAction pa);
+      PlayStatus::SongStatus updateStatus(); 
 
       MusicState mMusicState = MusicState::NOT_SET;
       PlayerMode mMode = PlayerMode::NOTSET;
-      std::map<int, bool> mSongMap;
+      PlayingAction mPlayingAction = PlayingAction::NO_ACTION;
+      std::queue<int> mSongQueue;
 
       int mCurrentVolume = -1;
+      long mCurrentTime = -1;
+      int mCurrentSongTotalTime = -1;
       
       SemaphoreHandle_t mSerialMutex = NULL;
-      
+      SemaphoreHandle_t mPlayingMutex = NULL;
       TaskHandle_t mMonitorTask = NULL;
   };
 } //MP3Control

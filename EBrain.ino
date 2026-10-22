@@ -74,7 +74,7 @@ void loop()
       ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::SHUFFLE, 17, 22));
     }
     else if(command == "A") {
-      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, 17));
+      ptrPlayer->playAction(SongPlay::PlayMessage(SongPlay::Action::PLAY_ALL, 17, 22));
     }
     else if(command == "PS") {
       Serial.println("*****PS");
@@ -86,9 +86,6 @@ void loop()
     else if(command.startsWith(":")) {
       Serial.println(ptrPlayer->queryBT201(command.substring(1).c_str()));
       
-    }
-    else {
-      ptrPlayer->playSong(command.toInt());
     }
     // if(command == "S")
     // {
